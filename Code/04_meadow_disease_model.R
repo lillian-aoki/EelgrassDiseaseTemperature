@@ -1,7 +1,7 @@
 # Code files for EelgrassDiseaseTemperature manuscript
 # 04_meadow_disease_model
 
-# Last updated 2021-05-08 by Lillian Aoki
+# Last updated 2021-05-20 by Lillian Aoki
 
 # This script uses eelgrass wasting disease survey data and remotely sensed SST data to model effects of temperature anomalies
 # and plant and meadow characteristsics on wasting disease prevalence and severity. 
@@ -90,6 +90,8 @@ Sa <- meadow_plot+theme_bw()+
         axis.text = element_text(size=10))
 Sa
 # ggsave(filename = "Figures/FigS1A_odds_ratio_meadow_prevalence.jpg", width=4, height=4)
+# create high resolution version for submission
+# ggsave(filename = "Figures/HighRes/FigS1A_odds_ratio_meadow_prevalence.tiff", width=4, height=4)
 # Odds ratio figure is Supplemental Figure S1A (effect sizes of meadow prevalence model)
 # Odds ratio plot shows the standardized effect sizes. For a 1 SD increase in Cumulative SST anomaly, the chances of a meadow being completely diseased (prevalence = 100%) effectively doubles. Effect of leaf area is much weaker (only increases prevalence by a factor of 1.14x for each increase in SD).
 # 
@@ -223,6 +225,9 @@ Sb <- meadow_plot2+theme_bw()+
         axis.text = element_text(size=10))
 Sb
 # ggsave(filename = "Figures/FigS1B_effect_size_meadow_severity.jpg", width=4, height=4)
+# create high resolution version for submission (not uploaded)
+# ggsave(filename = "Figures/HighRes/FigS1B_effect_size_meadow_severity.tiff", width=4, height=4)
+
 # Visualize model by simulating fit across new data holding one variable constant at a time.
 
 jvaluesSc <- with(dat, seq(from = min(BladeAreaMean), to = max(BladeAreaMean), length.out = 100))
@@ -343,8 +348,11 @@ scombo <- cowplot::plot_grid(d1,c1,nrow=2, labels=c("C","D"))
 total <- cowplot::plot_grid(pcombo,scombo,ncol=2)
 total_l <- cowplot::plot_grid(total,legend,nrow=2,rel_heights = c(1,.1))
 total_l
+# output to Fig 5 in the manuscript
 ggsave(filename = "Figures/Fig5_meadow_model.jpg", width = 4.75, height= 5.5)
-# output ot Fig 5 in the manuscript
+# create high resolution version
+ggsave(filename = "Figures/HighRes/Fig5_meadow_model.tiff", width = 4.75, height= 5.5)
 
 Sa + Sb 
 ggsave(filename = "Figures/FigS1_effect_size_meadow_model.jpg", width = 8, height = 4)
+ggsave(filename = "Figures/HighRes/FigS1_effect_size_meadow_model.tiff", width = 8, height = 4)

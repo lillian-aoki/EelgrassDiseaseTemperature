@@ -1,7 +1,7 @@
 # Code files for EelgrassDiseaseTemperature manuscript
 # 02_sea_surface_temperature
 
-# Last updated 2021-05-08 by Lillian Aoki
+# Last updated 2021-05-20 by Lillian Aoki
 
 # This script imports and visualizes sea-surface temperature data for the wasting disease survey sites from 2019,
 # including exploratory data analysis to identify relevant temperature metrics correlated with wasting disease
@@ -76,7 +76,7 @@ seasonal <- annual %>%
   group_by(Region,Site,Meadow,Season)%>%
   summarise(meanT=mean(analysed_sst),maxT=max(analysed_sst),rangeT=maxT-min(analysed_sst))
 
-season_d <- left_join(seasonal,disease,by=c("Region","Site"="SiteCode"))
+season_d <- left_join(seasonal,meta,by=c("Region","Site"="SiteCode"))
 seasons <- na.omit(unique(season_d$Season))
 rm(corr_table)
 corr_table <- list()
@@ -337,8 +337,10 @@ legend <- get_legend(SST+theme(legend.box.margin = margin(0,0,0,0),
 total <- plot_grid(SST1,CPTA,ncol=2,labels=c("A","B"),hjust = 0)
 total_l <- plot_grid(total,legend,nrow=2,rel_heights = c(1,.1))
 total_l
-ggsave(total_l,filename = "Figures/Fig4_SST_CPTA.jpg",width=4.75,height=6.25)
 # plot of SST and CPTA in June is Fig 4 in the manuscript
+ggsave(total_l,filename = "Figures/Fig4_SST_CPTA.jpg",width=4.75,height=6.25)
+# create high resolution version for manuscript submission (not uploaded)
+ggsave(total_l,filename = "Figures/HighRes/Fig4_SST_CPTA.tiff",width=4.75,height=6.25)
 
 # Plot seasonal SST ranges ####
 short$Month <- floor_date(short$time,unit="month")
@@ -362,3 +364,5 @@ ggplot(seasonal_region,aes(x=Region,y=DailyTemp,fill=Region))+geom_boxplot()+
         axis.text = element_text(size=10),
         strip.text = element_text(size=10))
 ggsave(filename = "Figures/FigS4_daily_SST.jpg",width=6,height=4)
+# create high resolution version, not uploaded
+ggsave(filename = "Figures/HighRes/FigS4_daily_SST.tiff",width=6,height=4)

@@ -474,3 +474,5 @@ d
 (a + b) / (c + d)
 ggsave(filename = "Figures/FigS3_effect_size_blade_model.jpg", width=8, height = 8)
 # This is Figure S3 in the manuscript
+# create high resolution version
+ggsave(filename = "Figures/HighRes/FigS3_effect_size_blade_model.tiff", width=8, height = 8)

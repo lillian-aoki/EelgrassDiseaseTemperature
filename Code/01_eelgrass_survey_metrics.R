@@ -1,7 +1,7 @@
 # Code files for EelgrassDiseaesTemperature manuscript
 # 01_eelgrass_survey_metrics
 
-# Last updated 2021-05-07 by Lillian Aoki
+# Last updated 2021-05-20 by Lillian Aoki
 
 # This script imports and visualizes data from the eelgrass wasting disease surveys in 2019
 # Outputs include Fig 6 and Fig S5 in the manuscript
@@ -272,6 +272,8 @@ p_all <- plot_grid(
 )
 p_all
 ggsave(p_all,filename = "Figures/FigS5_seagrass_metrics.jpg",height=6.75,width=6)
+# create high resolution version for paper submission (high-res files not uploaded to github)
+ggsave(p_all,filename = "Figures/HighRes/FigS5_seagrass_metrics.tiff",height=6.75,width=6)
 
 # blade area, shoot density, disease prevalence, and disease severity for manuscript Figure 6
 p_ba1 <- p_ba+xlab(NULL)
@@ -290,3 +292,4 @@ p_fig <- plot_grid(
 )
 p_fig
 ggsave(p_fig,filename = "Figures/Fig6_disease_metrics.jpg",height=9,width=6)
+ggsave(p_fig,filename = "Figures/HighRes/Fig6_disease_metrics.tiff",height=9,width=6)

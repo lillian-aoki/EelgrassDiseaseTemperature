@@ -1,7 +1,7 @@
 # Code files for EelgrassDiseaseTemperature manuscript
 # 05_transect_disease_model
 
-# Last updated 2021-05-08 by Lillian Aoki
+# Last updated 2021-05-20 by Lillian Aoki
 
 # This script uses eelgrass wasting disease survey data and remotely sensed SST data to model effects of temperature anomalies
 # and plant and transect characteristsics on wasting disease prevalence and severity. 
@@ -499,6 +499,8 @@ d
 # Same estimate for leaf area but for the unrestricted dataset (all transects), shoot density is significant. 
 (a + b) / (c + d) + plot_layout(guides="collect")
 ggsave(filename = "Figures/FigS2_effect_size_transect.jpg",width=8, height = 8)
+# high resolution version
+ggsave(filename = "Figures/HighRes/FigS2_effect_size_transect.tiff",width=8, height = 8)
 
 # Figure of transect-level correlations ####
 
@@ -542,6 +544,8 @@ p_cpta <- ggplot(data=transect,aes(x=CDiffMeanHeat,y=PrevalenceMean,color=Region
 
 (p_ba + p_den) / (p_epi + p_cpta) +plot_layout(guides="collect")+plot_annotation(tag_levels = c("A","B","C","D"))
 ggsave(filename = "Figures/FigS6_transect_regressions_prevalence.jpg",width=10,height=8)
+# high resolution version
+ggsave(filename = "Figures/HighRes/FigS6_transect_regressions_prevalence.tiff",width=10,height=8)
 
 ## Severity ####
 dat <- subset(transect,SeverityMean>0)
