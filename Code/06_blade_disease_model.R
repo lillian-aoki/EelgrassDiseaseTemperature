@@ -1,7 +1,7 @@
 # Code files for EelgrassDiseaseTemperature manuscript
 # 06_blade_disease_model
 
-# Last updated 2021-05-09 by Lillian Aoki
+# Last updated 2021-05-20 by Lillian Aoki
 
 # This script uses eelgrass wasting disease survey data and remotely sensed SST data to model effects of temperature anomalies
 # and plant and blade characteristsics on wasting disease prevalence and severity. 
