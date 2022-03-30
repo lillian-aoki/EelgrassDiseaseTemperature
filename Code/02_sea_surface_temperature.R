@@ -41,7 +41,7 @@ monthly <- annual %>%
 # note this is the same dataset as for disease
 meta <- read.csv("Data/all_survey_metrics_site.csv")
 meta$Region <- ordered(meta$Region, levels=region_order)
-meta <- dplyr::select(meta, c(Year, Region, SiteCode, PrevalenceMean, SeverityMean, SampleDate, SampleJulian))
+meta <- dplyr::select(meta, c(Year, Region, SiteCode, PrevalenceMean, SeverityMean, LesionAreaMean, SampleDate, SampleJulian))
 
 ### Raw temperature metrics ####
 month_d <- left_join(monthly,meta,by=c("Region","Site"="SiteCode"))
@@ -58,12 +58,18 @@ for(i in seq_along(months)){
   sev_mean <- cor.test(month$SeverityMean,month$meanT)
   sev_max <- cor.test(month$SeverityMean,month$maxT)
   sev_range <- cor.test(month$SeverityMean,month$rangeT)
+  les_mean <- cor.test(month$LesionAreaMean, month$meanT)
+  les_max <- cor.test(month$LesionAreaMean, month$maxT)
+  les_range <- cor.test(month$LesionAreaMean, month$rangeT)
   month_row <- data.frame(Month=months[i],Prev_mean_corr=prev_mean$estimate,Prev_mean_p=prev_mean$p.value,
                           Prev_max_corr=prev_max$estimate,Prev_max_p=prev_max$p.value,
                           Prev_range_corr=prev_range$estimate,Prev_range_p=prev_range$p.value,
                           Sev_mean_corr=sev_mean$estimate,Sev_mean_p=sev_mean$p.value,
                           Sev_max_corr=sev_max$estimate,Sev_max_p=sev_max$p.value,
-                          Sev_range_corr=sev_range$estimate,Sev_range_p=sev_range$p.value)
+                          Sev_range_corr=sev_range$estimate,Sev_range_p=sev_range$p.value,
+                          Les_mean_corr=les_mean$estimate, Les_mean_p=les_mean$p.value,
+                          Les_max_corr=les_max$estimate, Les_max_p=les_max$p.value,
+                          Les_range_corr=les_range$estimate, Les_range_p=les_range$p.value)
   corr_table[[i]] <- month_row
 }
 # bind rows into table that shows Pearson's correlation coefficient and p-value for different temperature metrics
@@ -89,12 +95,18 @@ for(i in seq_along(seasons)){
   sev_mean <- cor.test(season$SeverityMean,season$meanT)
   sev_max <- cor.test(season$SeverityMean,season$maxT)
   sev_range <- cor.test(season$SeverityMean,season$rangeT)
+  les_mean <- cor.test(season$LesionAreaMean, season$meanT)
+  les_max <- cor.test(season$LesionAreaMean, season$maxT)
+  les_range <- cor.test(season$LesionAreaMean, season$rangeT)
   season_row <- data.frame(Season=seasons[i],Prev_mean_corr=prev_mean$estimate,Prev_mean_p=prev_mean$p.value,
                            Prev_max_corr=prev_max$estimate,Prev_max_p=prev_max$p.value,
                            Prev_range_corr=prev_range$estimate,Prev_range_p=prev_range$p.value,
                            Sev_mean_corr=sev_mean$estimate,Sev_mean_p=sev_mean$p.value,
                            Sev_max_corr=sev_max$estimate,Sev_max_p=sev_max$p.value,
-                           Sev_range_corr=sev_range$estimate,Sev_range_p=sev_range$p.value)
+                           Sev_range_corr=sev_range$estimate,Sev_range_p=sev_range$p.value,
+                           Les_mean_corr=les_mean$estimate, Les_mean_p=les_mean$p.value,
+                           Les_max_corr=les_max$estimate, Les_max_p=les_max$p.value,
+                           Les_range_corr=les_range$estimate, Les_range_p=les_range$p.value)
   corr_table[[i]] <- season_row
 }
 tab2 <- bind_rows(corr_table)
@@ -136,12 +148,15 @@ dat_30 <- left_join(meta,stress_30,by=c("Region","SiteCode"="Site","SampleJulian
 # plot the 30-day cumulative anomaly vs disease metrics
 ggplot(dat_30,aes(x=roll_cDiffMeanHeat,y=PrevalenceMean,color=Region))+geom_point()
 ggplot(dat_30,aes(x=roll_cDiffMeanHeat,y=SeverityMean,color=Region))+geom_point()
+ggplot(dat_30,aes(x=roll_cDiffMeanHeat,y=LesionAreaMean,color=Region))+geom_point()
 # assess the correlation (Pearson's) between 30-day anomaly and disease metrics
 dat_30 <- na.omit(dat_30)
 cor.test(dat_30$PrevalenceMean,dat_30$roll_cDiffMeanHeat)
 cor.test(dat_30$SeverityMean,dat_30$roll_cDiffMeanHeat)
+cor.test(dat_30$LesionAreaMean,dat_30$roll_cDiffMeanHeat)
 cor.test(dat_30$PrevalenceMean,dat_30$roll_cDiff90Heat)
 cor.test(dat_30$SeverityMean,dat_30$roll_cDiff90Heat)
+cor.test(dat_30$LesionAreaMean,dat_30$roll_cDiff90Heat)
 # no strong correlation
 
 # Calculate the cumulative anomaly for 60 days prior to sampling
@@ -160,8 +175,10 @@ ggplot(dat_60,aes(x=roll_cDiffMeanHeat,y=SeverityMean,color=Region))+geom_point(
 dat_60 <- na.omit(dat_60)
 cor.test(dat_60$PrevalenceMean,dat_60$roll_cDiffMeanHeat)
 cor.test(dat_60$SeverityMean,dat_60$roll_cDiffMeanHeat)
+cor.test(dat_60$LesionAreaMean,dat_60$roll_cDiffMeanHeat)
 cor.test(dat_60$PrevalenceMean,dat_60$roll_cDiff90Heat)
 cor.test(dat_60$SeverityMean,dat_60$roll_cDiff90Heat)
+cor.test(dat_60$LesionAreaMean,dat_60$roll_cDiff90Heat)
 # no strong signal
 
 ## Repeat for 14 days (two weeks) prior to sampling
@@ -172,14 +189,16 @@ short_19_14 <- short_19%>%
          roll_cDiff90=roll_sum(DiffT90, 14, align = "right",fill=NA),
          roll_cDiff90Heat=roll_sum(DiffT90Heat, 14, align = "right",fill=NA))
 stress_14 <- short_19_14[,c("Region","Site","Julian","roll_cDiffMeanHeat","roll_cDiff90Heat")]
-dat_14 <- left_join(dmeta,stress_14,by=c("Region","SiteCode"="Site","SampleJulian"="Julian"))
+dat_14 <- left_join(meta,stress_14,by=c("Region","SiteCode"="Site","SampleJulian"="Julian"))
 ggplot(dat_14,aes(x=roll_cDiffMeanHeat,y=PrevalenceMean,color=Region))+geom_point()
 ggplot(dat_14,aes(x=roll_cDiffMeanHeat,y=SeverityMean,color=Region))+geom_point()
 dat_14 <- na.omit(dat_14)
 cor.test(dat_14$PrevalenceMean,dat_14$roll_cDiffMeanHeat)
 cor.test(dat_14$SeverityMean,dat_14$roll_cDiffMeanHeat)
+cor.test(dat_14$LesionAreaMean,dat_14$roll_cDiffMeanHeat)
 cor.test(dat_14$PrevalenceMean,dat_14$roll_cDiff90Heat)
 cor.test(dat_14$SeverityMean,dat_14$roll_cDiff90Heat)
+cor.test(dat_14$LesionAreaMean,dat_14$roll_cDiff90Heat)
 # no strong signal
 
 # repeat for 90 days prior to sampling
@@ -190,14 +209,16 @@ short_19_90 <- short_19%>%
          roll_cDiff90=roll_sum(DiffT90, 90, align = "right",fill=NA),
          roll_cDiff90Heat=roll_sum(DiffT90Heat, 90, align = "right",fill=NA))
 stress_90 <- short_19_90[,c("Region","Site","Julian","roll_cDiffMeanHeat","roll_cDiff90Heat")]
-dat_90 <- left_join(dmeta,stress_90,by=c("Region","SiteCode"="Site","SampleJulian"="Julian"))
+dat_90 <- left_join(meta,stress_90,by=c("Region","SiteCode"="Site","SampleJulian"="Julian"))
 ggplot(dat_90,aes(x=roll_cDiffMeanHeat,y=PrevalenceMean,color=Region))+geom_point()
 ggplot(dat_90,aes(x=roll_cDiffMeanHeat,y=SeverityMean,color=Region))+geom_point()
 dat_90 <- na.omit(dat_90)
 cor.test(dat_90$PrevalenceMean,dat_90$roll_cDiffMeanHeat)
 cor.test(dat_90$SeverityMean,dat_90$roll_cDiffMeanHeat)
+cor.test(dat_90$LesionAreaMean,dat_90$roll_cDiffMeanHeat)
 cor.test(dat_90$PrevalenceMean,dat_90$roll_cDiff90Heat)
 cor.test(dat_90$SeverityMean,dat_90$roll_cDiff90Heat)
+cor.test(dat_90$LesionAreaMean,dat_90$roll_cDiff90Heat)
 # no strong signal
 
 # repeat for 45 days prior to sampling
@@ -208,14 +229,16 @@ short_19_45 <- short_19%>%
          roll_cDiff90=roll_sum(DiffT90, 45, align = "right",fill=NA),
          roll_cDiff90Heat=roll_sum(DiffT90Heat, 45, align = "right",fill=NA))
 stress_45 <- short_19_45[,c("Region","Site","Julian","roll_cDiffMeanHeat","roll_cDiff90Heat")]
-dat_45 <- left_join(dmeta,stress_45,by=c("Region","SiteCode"="Site","SampleJulian"="Julian"))
+dat_45 <- left_join(meta,stress_45,by=c("Region","SiteCode"="Site","SampleJulian"="Julian"))
 ggplot(dat_45,aes(x=roll_cDiffMeanHeat,y=PrevalenceMean,color=Region))+geom_point()
 ggplot(dat_45,aes(x=roll_cDiffMeanHeat,y=SeverityMean,color=Region))+geom_point()
 dat_45 <- na.omit(dat_45)
 cor.test(dat_45$PrevalenceMean,dat_45$roll_cDiffMeanHeat)
 cor.test(dat_45$SeverityMean,dat_45$roll_cDiffMeanHeat)
+cor.test(dat_45$LesionAreaMean,dat_45$roll_cDiffMeanHeat)
 cor.test(dat_45$PrevalenceMean,dat_45$roll_cDiff90Heat)
 cor.test(dat_45$SeverityMean,dat_45$roll_cDiff90Heat)
+cor.test(dat_45$LesionAreaMean,dat_45$roll_cDiff90Heat)
 # no strong signal
 
 # repeat for 21 days prior to sampling
@@ -256,10 +279,14 @@ for(i in seq_along(months)){
   sev_mean <- cor.test(month$SeverityMean,month$CDiffMeanHeat)
   prev_90 <- cor.test(month$PrevalenceMean,month$CDiff90Heat)
   sev_90 <- cor.test(month$SeverityMean,month$CDiff90Heat)
+  les_mean <- cor.test(month$LesionAreaMean, month$CDiffMeanHeat)
+  les_90 <- cor.test(month$LesionAreaMean, month$CDiff90Heat)
   month_row <- data.frame(Month=months[i],Prev_mean_corr=prev_mean$estimate,Prev_mean_p=prev_mean$p.value,
                           Sev_mean_corr=sev_mean$estimate,Sev_mean_p=sev_mean$p.value,
                           Prev_90_corr=prev_90$estimate, Prev_90_p=prev_90$p.value,
-                          Sev_90_corr=sev_90$estimate, Sev_90_p=sev_90$p.value)
+                          Sev_90_corr=sev_90$estimate, Sev_90_p=sev_90$p.value,
+                          Les_mean_corr=les_mean$estimate, Les_mean_p=les_mean$p.value,
+                          Les_90_corr=les_90$estimate, Les_90_p=les_90$p.value)
   corr_table[[i]] <- month_row
 }
 #

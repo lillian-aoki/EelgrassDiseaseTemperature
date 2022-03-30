@@ -22,7 +22,7 @@ dat$Region <- ordered(dat$Region,levels=region_order)
 dat$CPTempAnomaly <- dat$CDiffMeanHeat
 ba <- read.csv("Data/all_survey_metrics_site.csv")
 ba$Meadow <- paste(ba$Region,ba$SiteCode,sep="_")
-ba <- select(ba,c("Meadow","BladeAreaMean", "DensityShootsMean"))
+ba <- select(ba,c("Meadow","BladeAreaMean", "DensityShootsMean", "EpiphytePerAreaMean"))
 dat <- left_join(dat,ba,by="Meadow")
 
 # Prevalence model ####
@@ -33,25 +33,32 @@ fit_prev1 <- betareg(PrevalenceMean~CPTempAnomaly + BladeAreaMean,
                      data=dat,
                      weights = Count,
                      link = "logit")
-
 fit_prev2 <- betareg(PrevalenceMean~CPTempAnomaly + DensityShootsMean,
                      data=dat,
                      weights = Count,
                      link = "logit")
-fit_prev3 <- betareg(PrevalenceMean~CPTempAnomaly,
+fit_prev3 <- betareg(PrevalenceMean~CPTempAnomaly + EpiphytePerAreaMean,
                      data=dat,
                      weights = Count,
                      link = "logit")
-fit_prev4 <- betareg(PrevalenceMean~ BladeAreaMean,
+fit_prev4 <- betareg(PrevalenceMean~CPTempAnomaly,
                      data=dat,
                      weights = Count,
                      link = "logit")
-fit_prev5 <- betareg(PrevalenceMean~ DensityShootsMean,
+fit_prev5 <- betareg(PrevalenceMean~ BladeAreaMean,
+                     data=dat,
+                     weights = Count,
+                     link = "logit")
+fit_prev6 <- betareg(PrevalenceMean~ DensityShootsMean,
+                     data=dat,
+                     weights = Count,
+                     link = "logit")
+fit_prev7 <- betareg(PrevalenceMean~ EpiphytePerAreaMean,
                      data=dat,
                      weights = Count,
                      link = "logit")
 
-df.AIC <- AIC(fit_prev1,fit_prev2,fit_prev3,fit_prev4,fit_prev5)
+df.AIC <- AIC(fit_prev1,fit_prev2,fit_prev3,fit_prev4,fit_prev5,fit_prev6, fit_prev7)
 df.AIC$deltaAIC <- df.AIC$AIC-min(df.AIC$AIC)
 df.AIC$likelihood <- exp(-df.AIC$deltaAIC/2)
 df.AIC$weight <- df.AIC$likelihood/sum(df.AIC$likelihood)
@@ -69,25 +76,26 @@ plot(E.prev~dat$CPTempAnomaly)
 # Both cumulative anomaly and blade area are significant. 
 # 
 ## Visualize the best-fitting model effect sizes
-prev_names <- c("Blade area", "Cumulative SST anomaly")
+prev_names <- c("Leaf\n area", "Cumulative\n SST \nanomaly")
 meadow_plot <- plot_model(fit_prev1,
                           type="std",
                           axis.labels = prev_names,
                           title="",
                           show.p = TRUE,
                           show.values = TRUE,
-                          value.offset = 0.1,
-                          axis.lim = c(0.2,5),
+                          value.offset = 0.2,
+                          value.size = 3,
+                          axis.lim = c(0.2,15),
                           group.terms = c(1,1))
 Sa <- meadow_plot+theme_bw()+
   geom_hline(yintercept = 1,linetype="dashed",color="darkgrey")+
-  scale_y_log10(limits=c(0.5,2.4))+
+  scale_y_log10(limits=c(0.5,2.5))+
   scale_color_manual(values=c("black"))+
-  ylab("Scaled estimates of \ndisease prevalence odds ratio")+
+  ylab("Scaled estimates of \ndisease prevalence\n odds ratio")+
   labs(tag="A")+
   #xlab("Scaled parameters")+
   theme(panel.grid = element_blank(),
-        axis.text = element_text(size=10))
+        axis.text = element_text(size=9))
 Sa
 # ggsave(filename = "Figures/FigS1A_odds_ratio_meadow_prevalence.jpg", width=4, height=4)
 # create high resolution version for submission
@@ -166,19 +174,27 @@ fit_sev2 <- betareg(SeverityMean~CPTempAnomaly + DensityShootsMean,
                     data=dat,
                     weights = Count,
                     link = "logit")
-fit_sev3 <- betareg(SeverityMean~CPTempAnomaly,
+fit_sev3 <- betareg(SeverityMean~CPTempAnomaly + EpiphytePerAreaMean,
                     data=dat,
                     weights = Count,
                     link = "logit")
-fit_sev4 <- betareg(SeverityMean~ BladeAreaMean,
+fit_sev4 <- betareg(SeverityMean~CPTempAnomaly,
                     data=dat,
                     weights = Count,
                     link = "logit")
-fit_sev5 <- betareg(SeverityMean~ DensityShootsMean,
+fit_sev5 <- betareg(SeverityMean~ BladeAreaMean,
                     data=dat,
                     weights = Count,
                     link = "logit")
-df.AIC <- AIC(fit_sev1,fit_sev2,fit_sev3,fit_sev4,fit_sev5)
+fit_sev6 <- betareg(SeverityMean~ DensityShootsMean,
+                    data=dat,
+                    weights = Count,
+                    link = "logit")
+fit_sev7 <- betareg(SeverityMean~ EpiphytePerAreaMean,
+                    data=dat,
+                    weights = Count,
+                    link = "logit")
+df.AIC <- AIC(fit_sev1,fit_sev2,fit_sev3,fit_sev4,fit_sev5, fit_sev6, fit_sev7)
 df.AIC$deltaAIC <- df.AIC$AIC-min(df.AIC$AIC)
 df.AIC$likelihood <- exp(-df.AIC$deltaAIC/2)
 df.AIC$weight <- df.AIC$likelihood/sum(df.AIC$likelihood)
@@ -204,27 +220,28 @@ plot(E.sev~dat$CPTempAnomaly)
 # Blade area is significant, CPTA is not. 
 
 ## Visualize the best-fitting model effect sizes
-sev_names <- c("Leaf area", "Cumulative SST anomaly")
+sev_names <- c("Leaf\n area", "Cumulative\n SST\n anomaly")
 meadow_plot2 <- plot_model(fit_sev1,
                            type="std",
                            axis.labels = sev_names,
                            title="",
                            show.p = TRUE,
                            show.values = TRUE,
+                           value.size = 3,
                            value.offset = 0.2,
-                           #axis.lim = c(0.2,5),
+                           axis.lim = c(0.2,15),
                            group.terms = c(1,2))
 Sb <- meadow_plot2+theme_bw()+
   geom_hline(yintercept = 1,linetype="dashed",color="darkgrey")+
-  scale_y_log10(limits=c(0.5,2))+
+  scale_y_log10(limits=c(0.5,2.5))+
   scale_color_manual(values=c("grey50", "black"))+
   ylab("Scaled estimates of \ndisease severity ratio")+
   #xlab("Scaled parameters")+
   labs(tag="B")+
   theme(panel.grid = element_blank(),
-        axis.text = element_text(size=10))
+        axis.text = element_text(size=9))
 Sb
-# ggsave(filename = "Figures/FigS1B_effect_size_meadow_severity.jpg", width=4, height=4)
+# ggsave(filename = "Figures/FigS1B_effect_size_meadow_severity.jpg", width=2.2, height=4)
 # create high resolution version for submission (not uploaded)
 # ggsave(filename = "Figures/HighRes/FigS1B_effect_size_meadow_severity.tiff", width=4, height=4)
 
@@ -273,6 +290,113 @@ coefficients(fit_sev1)[3]*SDx2
 
 # Here, the standardized coeff for blade area is 30x greater in magnitude than the CPTA (which is non-sig anyway).
 # 
+# Lesion Area model ####
+# repeat model selection for lesion area as a disease metric - same predictors as for prevalence and severity
+# model is a glm with gamma distribution now (because lesion area is not bounded by 0-1 but rather >0)
+fit_les1 <- glm(LesionAreaMean~CPTempAnomaly + BladeAreaMean,
+                    data=dat,
+                    weights = Count,
+                    family = Gamma(link="log"))
+fit_les2 <- glm(LesionAreaMean~CPTempAnomaly + DensityShootsMean,
+                    data=dat,
+                    weights = Count,
+                    family = Gamma(link="log"))
+fit_les3 <- glm(LesionAreaMean~CPTempAnomaly + EpiphytePerAreaMean,
+                data=dat,
+                weights = Count,
+                family = Gamma(link="log"))
+fit_les4 <- glm(LesionAreaMean~CPTempAnomaly,
+                    data=dat,
+                    weights = Count,
+                    family = Gamma(link="log"))
+fit_les5 <- glm(LesionAreaMean~ BladeAreaMean,
+                    data=dat,
+                    weights = Count,
+                    family = Gamma(link="log"))
+fit_les6 <- glm(LesionAreaMean~ DensityShootsMean,
+                    data=dat,
+                    weights = Count,
+                    family = Gamma(link="log"))
+fit_les7 <- glm(LesionAreaMean~ EpiphytePerAreaMean,
+                data=dat,
+                weights = Count,
+                family = Gamma(link="log"))
+df.AIC <- AIC(fit_les1,fit_les2,fit_les3,fit_les4,fit_les5,fit_les6, fit_les7)
+df.AIC$deltaAIC <- df.AIC$AIC-min(df.AIC$AIC)
+df.AIC$likelihood <- exp(-df.AIC$deltaAIC/2)
+df.AIC$weight <- df.AIC$likelihood/sum(df.AIC$likelihood)
+df.AIC
+# use fit_les1, by far the most information by AIC
+summary(fit_les1)
+E.prev <- resid(fit_les1,type='pearson')
+F.prev <- fitted(fit_les1)
+plot(E.prev~F.prev)
+plot(E.prev~dat$BladeAreaMean)
+plot(E.prev~dat$CPTempAnomaly)
+plot(E.prev~dat$DensityShootsMean)
+# resids are ok
+
+les_names <- c("Leaf\n area", "Cumulative\n SST\n anomaly")
+meadow_plot <- plot_model(fit_les3,
+                          type="std",
+                          axis.labels = les_names,
+                          title="",
+                          show.p = TRUE,
+                          show.values = TRUE,
+                          value.offset = 0.2,
+                          value.size = 3,
+                          axis.lim = c(0.2,15),
+                          group.terms = c(1,2)
+)
+Sc <- meadow_plot+theme_bw()+
+  geom_hline(yintercept = 1,linetype="dashed",color="darkgrey")+
+  scale_y_log10(limits=c(0.5,2.6))+
+  scale_color_manual(values=c("black","grey50"))+
+  ylab("Scaled estimates of \nlesion area")+
+  labs(tag="C")+
+  #xlab("Scaled parameters")+
+  theme(panel.grid = element_blank(),
+        axis.text = element_text(size=9))
+Sc
+# ggsave(filename = "Figures/FigS1C_effect_size_meadow_lesion_area.jpg", width=2, height=4)
+# create high resolution version for submission (not uploaded)
+# ggsave(filename = "Figures/HighRes/FigS1B_effect_size_meadow_severity.tiff", width=4, height=4)
+
+# Visualize model by simulating fit across new data holding one variable constant at a time.
+
+# First simulate change in CPTA
+jvaluesLe <- with(dat, seq(from = min(CPTempAnomaly), to = max(CPTempAnomaly), length.out = 100))
+# create new data and hold blade area at the median value of the dataset (29.1 cm2)
+b.dataLe <- data.frame(CPTempAnomaly=jvaluesLe,BladeAreaMean=median(dat$BladeAreaMean))
+# make predictions on scale of linear predictor
+predLe_lin <- predict(fit_les1, newdata=b.dataLe, type="link", se.fit=TRUE)
+# use critical interval of 1.96 to calculate 95% for SE
+critval <- 1.96
+# need to use inverse link function to scale to response variable
+predLe <- cbind(
+  response=fit_les1$family$linkinv(predLe_lin$fit),
+  upper=fit_les1$family$linkinv(predLe_lin$fit + (critval * predLe_lin$se.fit)),
+  lower=fit_les1$family$linkinv(predLe_lin$fit - (critval * predLe_lin$se.fit))
+)
+# predLe <- cbind(
+#   response=predict(fit_les1,newdata=b.dataLe,type='response'),
+#   #variance=predict(fit_les1,newdata=b.dataLe,type='variance'),
+#   se_link=predict(fit_les1,newdata=b.dataLe,type='link',se.fit=TRUE)[[2]],
+#   upper=response+in)
+lese <- as.data.frame(predLe)
+lese <- cbind(lese,b.dataLe)
+e <- ggplot(lese,aes(x=CPTempAnomaly))+
+  geom_line(aes(y=response))+
+  geom_line(aes(y=upper),linetype="dashed")+
+  geom_line(aes(y=lower),linetype="dashed")+
+  geom_point(data=dat,aes(x=CPTempAnomaly,y=LesionAreaMean,color=Region),size=2)+
+  # scale_y_continuous(labels = scales::percent_format(accuracy = 1))+ 
+  scale_color_viridis_d()+
+  xlab("Cumulative positive temperature anomaly (ºC)")+
+  ylab(expression(paste("Wasting disease \nlesion area (cm"^"2"~")")))+
+  theme_bw()+
+  theme(panel.grid = element_blank())
+e
 # Overall, CPTA was significant for determining prevalence but not for severity, which is significantly affected by blade area.
 
 # Plot data and model results for paper ####
@@ -286,7 +410,7 @@ a1 <- ggplot(preva,aes(x=CPTempAnomaly))+
   guides(color = guide_legend(nrow = 1))+
   xlab("Cumulative positive \ntemperature anomaly (ºC)")+
   ylab("Wasting disease prevalence\n (% individuals infected)")+
-  theme_bw(base_size = 9)+
+  theme_bw(base_size = 11)+
   theme(panel.grid = element_blank(),
         legend.margin = margin(t=0,r=0,b=0,l=1,unit="pt"),
         legend.key.size = unit(5,unit="mm"),
@@ -303,56 +427,87 @@ b1 <-ggplot(prevb,aes(x=BladeAreaMean))+
   geom_point(data=dat,aes(x=BladeAreaMean,y=PrevalenceMean,color=Region),size=2)+
   scale_y_continuous(labels = scales::percent_format(accuracy = 1))+ 
   scale_color_viridis_d()+
-  xlab(expression("Blade Area (cm"^"2"~")"))+
+  xlab(expression(paste("Leaf area (cm"^2,")")))+
   ylab("Wasting disease prevalence\n (% individuals infected)")+
-  theme_bw(base_size = 9)+
+  theme_bw(base_size = 11)+
   theme(panel.grid = element_blank(),
         legend.margin = margin(t=0,r=0,b=0,l=1,unit="pt"),
         legend.key.size = unit(5,unit="mm"),
         legend.title = element_blank(),
         legend.position = "")
-c1 <- ggplot(sevc,aes(x=BladeAreaMean))+
+c1 <- ggplot()+
+  geom_point(data=dat,aes(x=CPTempAnomaly,y=SeverityMean,color=Region),size=2)+
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1))+ 
+  scale_color_viridis_d()+
+  xlab("Cumulative positive \ntemperature anomaly (ºC)")+
+  ylab("Wasting disease severity\n (% leaf area damaged)")+
+  theme_bw(base_size = 11)+
+  theme(panel.grid = element_blank(),
+        legend.margin = margin(t=0,r=0,b=0,l=1,unit="pt"),
+        legend.key.size = unit(5,unit="mm"),
+        legend.title = element_blank(),
+        legend.position = "")
+d1 <- ggplot(sevc,aes(x=BladeAreaMean))+
   geom_line(aes(y=response))+
   geom_line(aes(y=q_0.025),linetype="dashed")+
   geom_line(aes(y=q_0.975),linetype="dashed")+
   geom_point(data=dat,aes(x=BladeAreaMean,y=SeverityMean,color=Region),size=2)+
   scale_y_continuous(labels = scales::percent_format(accuracy = 1))+ 
   scale_color_viridis_d()+
-  xlab(expression("Blade Area (cm"^"2"~")"))+
-  ylab("Wasting disease severity\n (% blade area damaged)")+
-  theme_bw(base_size = 9)+
+  xlab(expression(paste("Leaf area (cm"^2,")")))+
+  ylab("Wasting disease severity\n (% leaf area damaged)")+
+  theme_bw(base_size = 11)+
   theme(panel.grid = element_blank(),
         legend.margin = margin(t=0,r=0,b=0,l=1,unit="pt"),
         legend.key.size = unit(5,unit="mm"),
         legend.title = element_blank(),
         legend.position = "")
-d1 <- ggplot()+
-  geom_point(data=dat,aes(x=CPTempAnomaly,y=SeverityMean,color=Region),size=2)+
-  scale_y_continuous(labels = scales::percent_format(accuracy = 1))+ 
+e1 <- ggplot(lese,aes(x=CPTempAnomaly))+
+  geom_line(aes(y=response))+
+  geom_line(aes(y=upper),linetype="dashed")+
+  geom_line(aes(y=lower),linetype="dashed")+
+  geom_point(data=dat,aes(x=CPTempAnomaly,y=LesionAreaMean,color=Region),size=2)+
+  # scale_y_continuous(labels = scales::percent_format(accuracy = 1))+ 
   scale_color_viridis_d()+
   xlab("Cumulative positive \ntemperature anomaly (ºC)")+
-  ylab("Wasting disease severity\n (% blade area damaged)")+
-  theme_bw(base_size = 9)+
+  ylab(expression(atop("Wasting disease", paste("lesion area (cm"^2,")"))))+
+  theme_bw(base_size = 11)+
   theme(panel.grid = element_blank(),
         legend.margin = margin(t=0,r=0,b=0,l=1,unit="pt"),
         legend.key.size = unit(5,unit="mm"),
         legend.title = element_blank(),
         legend.position = "")
-
+f1 <- ggplot()+
+  geom_point(data=dat,aes(x=BladeAreaMean,y=LesionAreaMean,color=Region),size=2)+
+  # scale_y_continuous(labels = scales::percent_format(accuracy = 1))+ 
+  scale_color_viridis_d()+
+  xlab(expression(paste("Leaf area (cm"^2,")")))+
+  ylab(expression(atop("Wasting disease", paste("lesion area (cm"^2,")"))))+
+  theme_bw(base_size = 11)+
+  theme(panel.grid = element_blank(),
+        legend.margin = margin(t=0,r=0,b=0,l=1,unit="pt"),
+        legend.key.size = unit(5,unit="mm"),
+        legend.title = element_blank(),
+        legend.position = "")
 ## combine with cowplot
 a1a <- a1 +theme(legend.position = "")
 legend <- get_legend(a1+theme(legend.box.margin = margin(6,0,0,0),
                               legend.direction = "horizontal"))
-pcombo <- cowplot::plot_grid(a1a,b1,nrow=2, labels=c("A","B"))
-scombo <- cowplot::plot_grid(d1,c1,nrow=2, labels=c("C","D"))
-total <- cowplot::plot_grid(pcombo,scombo,ncol=2)
-total_l <- cowplot::plot_grid(total,legend,nrow=2,rel_heights = c(1,.1))
+pcombo <- cowplot::plot_grid(a1a,b1,nrow=1, labels=c("A","B"))
+scombo <- cowplot::plot_grid(c1,d1,nrow=1, labels=c("C","D"))
+lcombo <- cowplot::plot_grid(e1, f1, nrow=1, labels=c("E", "F"))
+total <- cowplot::plot_grid(pcombo,scombo, lcombo, ncol=1)
+total_l <- cowplot::plot_grid(total,legend,nrow=2,rel_heights = c(1,.05))
 total_l
 # output to Fig 5 in the manuscript
-ggsave(filename = "Figures/Fig5_meadow_model.jpg", width = 4.75, height= 5.5)
+ggsave(filename = "Figures/Fig5_meadow_model.jpg", width = 7, height= 9.5)
 # create high resolution version
-ggsave(filename = "Figures/HighRes/Fig5_meadow_model.tiff", width = 4.75, height= 5.5)
+ggsave(filename = "Figures/HighRes/Fig5_meadow_model.tiff", width = 7, height= 9.5)
 
-Sa + Sb 
-ggsave(filename = "Figures/FigS1_effect_size_meadow_model.jpg", width = 8, height = 4)
+supp <- cowplot::plot_grid(Sa, Sb, Sc, ggplot()+theme_blank(), nrow=2, rel_widths = c(1,1))
+supp
+alt <- cowplot::plot_grid(Sa, Sb, Sc, nrow=1, rel_widths = c(1,1,1))
+alt
+(Sa + Sb) / (Sc+ggplot()+theme_blank())
+ggsave(alt, filename = "Figures/FigS1_effect_size_meadow_model.jpg", width = 8, height = 4)
 ggsave(filename = "Figures/HighRes/FigS1_effect_size_meadow_model.tiff", width = 8, height = 4)
