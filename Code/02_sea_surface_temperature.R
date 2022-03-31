@@ -326,12 +326,12 @@ SST <- ggplot(june_stress,aes(x=Date))+
         strip.text.x = element_text(margin=margin(1,0,1,0,"pt")),
         panel.grid = element_blank(),
         legend.margin = margin(r=0,l=0,unit="mm"),
-        strip.text = element_text(size=9),
-        legend.text = element_text(size=9),
-        legend.title = element_text(size=9),
-        axis.text = element_text(size=9),
-        axis.title = element_text(size=11),
-        plot.margin=margin(r=10,unit="pt"),
+        strip.text = element_text(size=10),
+        legend.text = element_text(size=10),
+        legend.title = element_text(size=10),
+        axis.text = element_text(size=10),
+        axis.title = element_text(size=12),
+        plot.margin = margin(5,5,r=10,5,unit = "pt"),
         legend.position = "bottom")
 SST
 CPTA <- ggplot(june_stress,aes(x=Date))+
@@ -346,11 +346,11 @@ CPTA <- ggplot(june_stress,aes(x=Date))+
         strip.text.x = element_text(margin=margin(1,0,1,0,"pt")),
         panel.grid = element_blank(),
         legend.margin = margin(r=0,l=0,unit="mm"),
-        strip.text = element_text(size=9),
-        legend.text = element_text(size=9),
-        legend.title = element_text(size=9),
-        axis.text = element_text(size=9),
-        axis.title = element_text(size=11),
+        strip.text = element_text(size=10),
+        legend.text = element_text(size=10),
+        legend.title = element_text(size=10),
+        axis.text = element_text(size=10),
+        axis.title = element_text(size=12),
         plot.margin = margin(5,5,r=10,5,unit = "pt"),
         legend.position="")
 CPTA
@@ -358,16 +358,17 @@ p1 <- (SST + CPTA )+ plot_layout(guides = 'collect')
 p1
 
 SST1 <- SST +theme(legend.position = "")
+CPTA1 <- CPTA+theme(legend.position = "")
 legend <- get_legend(SST+theme(legend.box.margin = margin(0,0,0,0),
                                legend.direction = "horizontal"))
 
-total <- plot_grid(SST1,CPTA,ncol=2,labels=c("A","B"),hjust = 0)
+total <- plot_grid(SST1,CPTA1,ncol=2,labels=c("a","b"),hjust = 0)
 total_l <- plot_grid(total,legend,nrow=2,rel_heights = c(1,.1))
 total_l
 # plot of SST and CPTA in June is Fig 4 in the manuscript
-ggsave(total_l,filename = "Figures/Fig4_SST_CPTA.jpg",width=4.75,height=6.25)
+ggsave(total_l,filename = "Figures/Fig4_SST_CPTA.jpg",width=6.5,height=6.25)
 # create high resolution version for manuscript submission (not uploaded)
-ggsave(total_l,filename = "Figures/HighRes/Fig4_SST_CPTA.tiff",width=4.75,height=6.25)
+ggsave(total_l,filename = "Figures/HighRes/Fig4_SST_CPTA.tiff",width=6.5,height=6.25)
 
 # Plot seasonal SST ranges ####
 short$Month <- floor_date(short$time,unit="month")

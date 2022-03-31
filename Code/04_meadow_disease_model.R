@@ -335,7 +335,8 @@ plot(E.prev~dat$BladeAreaMean)
 plot(E.prev~dat$CPTempAnomaly)
 plot(E.prev~dat$DensityShootsMean)
 # resids are ok
-
+performance(fit_les1)
+r2_mcfadden(fit_les1)
 les_names <- c("Leaf\n area", "Cumulative\n SST\n anomaly")
 meadow_plot <- plot_model(fit_les3,
                           type="std",
@@ -410,12 +411,11 @@ a1 <- ggplot(preva,aes(x=CPTempAnomaly))+
   guides(color = guide_legend(nrow = 1))+
   xlab("Cumulative positive \ntemperature anomaly (ºC)")+
   ylab("Wasting disease prevalence\n (% individuals infected)")+
-  theme_bw(base_size = 11)+
+  theme_bw(base_size = 12)+
   theme(panel.grid = element_blank(),
         legend.margin = margin(t=0,r=0,b=0,l=1,unit="pt"),
         legend.key.size = unit(5,unit="mm"),
-        legend.text = element_text(size=8),
-        legend.title = element_blank(),
+        legend.text = element_text(size=10),
         legend.position = "bottom",
         legend.justification = "center",
         legend.direction = "horizontal"
@@ -429,7 +429,7 @@ b1 <-ggplot(prevb,aes(x=BladeAreaMean))+
   scale_color_viridis_d()+
   xlab(expression(paste("Leaf area (cm"^2,")")))+
   ylab("Wasting disease prevalence\n (% individuals infected)")+
-  theme_bw(base_size = 11)+
+  theme_bw(base_size = 12)+
   theme(panel.grid = element_blank(),
         legend.margin = margin(t=0,r=0,b=0,l=1,unit="pt"),
         legend.key.size = unit(5,unit="mm"),
@@ -441,7 +441,7 @@ c1 <- ggplot()+
   scale_color_viridis_d()+
   xlab("Cumulative positive \ntemperature anomaly (ºC)")+
   ylab("Wasting disease severity\n (% leaf area damaged)")+
-  theme_bw(base_size = 11)+
+  theme_bw(base_size = 12)+
   theme(panel.grid = element_blank(),
         legend.margin = margin(t=0,r=0,b=0,l=1,unit="pt"),
         legend.key.size = unit(5,unit="mm"),
@@ -456,7 +456,7 @@ d1 <- ggplot(sevc,aes(x=BladeAreaMean))+
   scale_color_viridis_d()+
   xlab(expression(paste("Leaf area (cm"^2,")")))+
   ylab("Wasting disease severity\n (% leaf area damaged)")+
-  theme_bw(base_size = 11)+
+  theme_bw(base_size = 12)+
   theme(panel.grid = element_blank(),
         legend.margin = margin(t=0,r=0,b=0,l=1,unit="pt"),
         legend.key.size = unit(5,unit="mm"),
@@ -471,7 +471,7 @@ e1 <- ggplot(lese,aes(x=CPTempAnomaly))+
   scale_color_viridis_d()+
   xlab("Cumulative positive \ntemperature anomaly (ºC)")+
   ylab(expression(atop("Wasting disease", paste("lesion area (cm"^2,")"))))+
-  theme_bw(base_size = 11)+
+  theme_bw(base_size = 12)+
   theme(panel.grid = element_blank(),
         legend.margin = margin(t=0,r=0,b=0,l=1,unit="pt"),
         legend.key.size = unit(5,unit="mm"),
@@ -483,7 +483,7 @@ f1 <- ggplot()+
   scale_color_viridis_d()+
   xlab(expression(paste("Leaf area (cm"^2,")")))+
   ylab(expression(atop("Wasting disease", paste("lesion area (cm"^2,")"))))+
-  theme_bw(base_size = 11)+
+  theme_bw(base_size = 12)+
   theme(panel.grid = element_blank(),
         legend.margin = margin(t=0,r=0,b=0,l=1,unit="pt"),
         legend.key.size = unit(5,unit="mm"),
@@ -493,14 +493,14 @@ f1 <- ggplot()+
 a1a <- a1 +theme(legend.position = "")
 legend <- get_legend(a1+theme(legend.box.margin = margin(6,0,0,0),
                               legend.direction = "horizontal"))
-pcombo <- cowplot::plot_grid(a1a,b1,nrow=1, labels=c("A","B"))
-scombo <- cowplot::plot_grid(c1,d1,nrow=1, labels=c("C","D"))
-lcombo <- cowplot::plot_grid(e1, f1, nrow=1, labels=c("E", "F"))
+pcombo <- cowplot::plot_grid(a1a,b1,nrow=1, labels=c("a","b"))
+scombo <- cowplot::plot_grid(c1,d1,nrow=1, labels=c("c","d"))
+lcombo <- cowplot::plot_grid(e1, f1, nrow=1, labels=c("e", "f"))
 total <- cowplot::plot_grid(pcombo,scombo, lcombo, ncol=1)
 total_l <- cowplot::plot_grid(total,legend,nrow=2,rel_heights = c(1,.05))
 total_l
 # output to Fig 5 in the manuscript
-ggsave(filename = "Figures/Fig5_meadow_model.jpg", width = 7, height= 9.5)
+ggsave(filename = "Figures/Fig5_meadow_model.jpg", width = 6.5, height= 9.75)
 # create high resolution version
 ggsave(filename = "Figures/HighRes/Fig5_meadow_model.tiff", width = 7, height= 9.5)
 
@@ -510,4 +510,4 @@ alt <- cowplot::plot_grid(Sa, Sb, Sc, nrow=1, rel_widths = c(1,1,1))
 alt
 (Sa + Sb) / (Sc+ggplot()+theme_blank())
 ggsave(alt, filename = "Figures/FigS1_effect_size_meadow_model.jpg", width = 8, height = 4)
-ggsave(filename = "Figures/HighRes/FigS1_effect_size_meadow_model.tiff", width = 8, height = 4)
+ggsave(alt, filename = "Figures/HighRes/FigS1_effect_size_meadow_model.tiff", width = 8, height = 4)

@@ -28,6 +28,7 @@ all <- left_join(all, coords, by=c("Region","SiteCode"))
 # calculate canopy height as the combination of sheath length and longest blade length
 all$CanopyHeightMean <- all$LongestBladeLengthMean+all$SheathLengthMean
 all$CanopyHeightSe <- sqrt((all$LongestBladeLengthSe)^2+(all$SheathLengthSe)^2)
+all$LesionAreaSe <- sd(all$LesionAreaMean/sqrt(length(all$LesionAreaMean)))
 
 all_region <- all %>%
   group_by(Region, Type="Region")%>%
@@ -46,7 +47,9 @@ all_region <- all %>%
             SeveritySe=sd(SeverityMean)/sqrt(length(SeverityMean)),
             SeverityMean=mean(SeverityMean),
             BladeAreaSe=sd(BladeAreaMean)/sqrt(length(BladeAreaMean)),
-            BladeAreaMean=mean(BladeAreaMean))
+            BladeAreaMean=mean(BladeAreaMean),
+            LesionAreaSe=sd(LesionAreaMean)/sqrt(length(LesionAreaMean)),
+            LesionAreaMean=mean(LesionAreaMean))
 
 all_region <- left_join(all_region,coords_region,by=c("Region"))
 
@@ -75,7 +78,7 @@ p_den <- ggplot()+
   scale_y_log10(limits=c(10,3000))+
   scale_x_discrete(breaks = combo$order,
                    labels = combo$SiteCode)+
-  ylab(expression(atop("Shoot density",paste("(shoots m"^"-2"~")"))))+
+  ylab(expression(atop("Shoot density",paste("(shoots m"^-2,")"))))+
   xlab("Site within Region")+
   theme_bw()+
   #theme(axis.text.x=element_text(angle=60,vjust = -0.05,hjust=0.25))+
@@ -84,9 +87,9 @@ p_den <- ggplot()+
         strip.background = element_blank(),
         strip.placement = "outside",
         panel.border = element_rect(),
-        axis.text=element_text(size=8),
-        axis.title=element_text(size=10),
-        strip.text = element_text(size=9),
+        axis.text=element_text(size=9.5),
+        axis.title=element_text(size=12),
+        strip.text = element_text(size=11),
         legend.position = "none")
 p_den
 
@@ -102,7 +105,7 @@ p_epi <- ggplot()+
   #scale_y_log10(limits=c(0.0000001,0.1))+
   scale_x_discrete(breaks = combo$order,
                    labels = combo$SiteCode)+
-  ylab(expression(atop("Epiphyte load",paste("(mg cm"^"-2"~")"))))+
+  ylab(expression(atop("Epiphyte load",paste("(mg cm"^-2,")"))))+
   xlab("Site within Region")+
   theme_bw()+
   #  theme(axis.text.x=element_text(angle=90))+
@@ -111,9 +114,9 @@ p_epi <- ggplot()+
         strip.background = element_blank(),
         strip.placement = "outside",
         panel.border = element_rect(),
-        axis.text=element_text(size=8),
-        axis.title=element_text(size=10),
-        strip.text = element_text(size=9),
+        axis.text=element_text(size=9.5),
+        axis.title=element_text(size=12),
+        strip.text = element_text(size=11),
         legend.position = "none")
 p_epi
 
@@ -139,9 +142,9 @@ p_sh <- ggplot()+
         strip.background = element_blank(),
         strip.placement = "outside",
         panel.border = element_rect(),
-        axis.text=element_text(size=8),
-        axis.title=element_text(size=10),
-        strip.text = element_text(size=9),
+        axis.text=element_text(size=9.5),
+        axis.title=element_text(size=12),
+        strip.text = element_text(size=11),
         legend.position="none")
 p_sh
 
@@ -166,9 +169,9 @@ p_ch <- ggplot()+
         strip.background = element_blank(),
         strip.placement = "outside",
         panel.border = element_rect(),
-        axis.text=element_text(size=8),
-        axis.title=element_text(size=10),
-        strip.text = element_text(size=9),
+        axis.text=element_text(size=9.5),
+        axis.title=element_text(size=12),
+        strip.text = element_text(size=11),
         legend.position = "none")
 p_ch
 
@@ -184,7 +187,7 @@ p_ba <- ggplot()+
   scale_shape_manual(values=c(8,16))+
   scale_x_discrete(breaks = combo$order,
                    labels = combo$SiteCode)+
-  ylab(expression("Blade area (cm"^"2"~")"))+
+  ylab(expression(paste("Leaf area (cm"^2,")")))+
   xlab("Site within Region")+
   theme_bw()+
   #  theme(axis.text.x=element_text(angle=90))+
@@ -193,9 +196,9 @@ p_ba <- ggplot()+
         strip.background = element_blank(),
         strip.placement = "outside",
         panel.border = element_rect(),
-        axis.text=element_text(size=8),
-        axis.title=element_text(size=10),
-        strip.text = element_text(size=9),
+        axis.text=element_text(size=9.5),
+        axis.title=element_text(size=12),
+        strip.text = element_text(size=11),
         plot.margin = margin(t=3,b=3,r=3,l=5,unit="mm"),
         legend.position = "none")
 p_ba
@@ -227,6 +230,35 @@ p_prev <- ggplot()+
         plot.margin = margin(t=3,b=3,r=3,l=5,unit="mm"),
         legend.position = "none")
 p_prev
+# alternative bar plot for prevalence 
+combo$Diseased <- combo$PrevalenceMean
+combo$Healthy <- 1-combo$PrevalenceMean
+
+combo <- combo %>%
+  gather(key="DiseaseStatus", value="Prevalence",c("Diseased", "Healthy"))
+test$DiseaseStatus <- ordered(test$DiseaseStatus, levels=c("Healthy","Diseased"))
+
+prev_bar <-   ggplot()+
+  geom_bar(data=combo,aes(x=as.factor(order),y=Prevalence,fill=DiseaseStatus), position="fill", stat="identity")+
+  facet_wrap(~Region,nrow = 1,scales = "free_x",strip.position = "bottom")+
+  scale_x_discrete(breaks = combo$order,
+                   labels = combo$SiteCode)+
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1), expand = c(0,0))+
+  scale_fill_viridis_d(begin = 0.75, end = 0.25, name="Disease status")+
+  ylab("Wasting disease prevalence\n(% individuals infected)")+
+  xlab("Site within Region")+
+  theme_bw()+
+  #  theme(axis.text.x=element_text(angle=90))+
+  theme(panel.spacing = unit(0, "lines"),
+        panel.grid = element_blank(),
+        strip.background = element_blank(),
+        strip.placement = "outside",
+        panel.border = element_rect(),
+        axis.text=element_text(size=9.5),
+        axis.title=element_text(size=12),
+        strip.text = element_text(size=11),
+        plot.margin = margin(t=3,b=3,r=3,l=5,unit="mm"),
+        legend.position = "top")
 
 # disease severity plot
 p_sev <- ggplot()+
@@ -235,7 +267,8 @@ p_sev <- ggplot()+
                                     ymax=SeverityMean+SeveritySe,
                                     ymin=SeverityMean-SeveritySe,color=Type,shape=Type))+
   facet_wrap(~Region,nrow = 1,scales = "free_x",strip.position = "bottom")+
-  scale_color_manual(values=c("black","wheat4"))+
+  scale_color_viridis_d(begin=0.25, end=0.25)+
+  # scale_color_manual(values=c("black","wheat4"))+
   scale_shape_manual(values=c(8,16))+
   scale_y_continuous(labels = scales::percent_format(accuracy = 1))+
   scale_x_discrete(breaks = combo$order,
@@ -249,47 +282,93 @@ p_sev <- ggplot()+
         strip.background = element_blank(),
         strip.placement = "outside",
         panel.border = element_rect(),
-        axis.text=element_text(size=8),
-        axis.title=element_text(size=10),
-        strip.text = element_text(size=9),
+        axis.text=element_text(size=9.5),
+        axis.title=element_text(size=12),
+        strip.text = element_text(size=11),
         plot.margin = margin(t=3,b=3,r=3,l=5,unit="mm"),
         legend.position = "none")
 p_sev
 
+# lesion area plot
+p_les <- ggplot()+
+  geom_pointrange(data=combo,aes(x=as.factor(order),
+                                 y=LesionAreaMean,
+                                 ymax=LesionAreaMean+LesionAreaSe,
+                                 ymin=LesionAreaMean-LesionAreaSe,color=Type,shape=Type))+
+  facet_wrap(~Region,nrow = 1,scales = "free_x",strip.position = "bottom")+
+  scale_color_viridis_d(begin = 0.25,end=0.25)+
+  #scale_color_manual(values=c("black","wheat4"))+
+  scale_shape_manual(values=c(8,16))+
+  scale_x_discrete(breaks = combo$order,
+                   labels = combo$SiteCode)+
+  ylab(expression(atop("Wasting disease", paste("lesion area (cm"^2,")"))))+
+  xlab("Site within Region")+
+  theme_bw()+
+  #  theme(axis.text.x=element_text(angle=90))+
+  theme(panel.spacing = unit(0, "lines"),
+        panel.grid = element_blank(),
+        strip.background = element_blank(),
+        strip.placement = "outside",
+        panel.border = element_rect(),
+        axis.text=element_text(size=9.5),
+        axis.title=element_text(size=12),
+        strip.text = element_text(size=11),
+        plot.margin = margin(t=3,b=3,r=3,l=5,unit="mm"),
+        legend.position = "none")
+p_les
+
+
 # Combine plots into figures ####
 
-# canopy height, sheath length, and epiphyte load for supplemental Figure S5
+# all seagrass metrics for supplemental Figure S5
+p_ba1 <- p_ba+xlab(NULL)
+p_den1 <- p_den+xlab(NULL)
 p_ch1 <- p_ch+xlab(NULL)
 p_sh1 <- p_sh+xlab(NULL)
 
 p_all <- plot_grid(
+  p_ba1,
+  p_den1,
   p_ch1,
   p_sh1,
   p_epi,
   align="v",
-  labels=c("A","B","C"),
+  labels=c("a","b","c","d","e"),
   ncol=1
 )
 p_all
-ggsave(p_all,filename = "Figures/FigS5_seagrass_metrics.jpg",height=6.75,width=6)
+ggsave(p_all,filename = "Figures/FigS6_seagrass_metrics.jpg",height=10,width=6)
 # create high resolution version for paper submission (high-res files not uploaded to github)
-ggsave(p_all,filename = "Figures/HighRes/FigS5_seagrass_metrics.tiff",height=6.75,width=6)
+ggsave(p_all,filename = "Figures/HighRes/FigS6_seagrass_metrics.tiff",height=10,width=6)
 
-# blade area, shoot density, disease prevalence, and disease severity for manuscript Figure 6
-p_ba1 <- p_ba+xlab(NULL)
-p_den1 <- p_den+xlab(NULL)
+# disease metrics for manuscript Figure 6
+
 p_prev1 <- p_prev+xlab(NULL)
+p_prev_bar1 <- prev_bar +xlab(NULL)
+p_sev1 <- p_sev+xlab(NULL)
 
-p_fig <- plot_grid(
-  p_ba1,
-  p_den1,
-  p_prev1,
-  p_sev,
+# p_fig <- plot_grid(
+#   p_ba1,
+#   p_den1,
+#   p_prev1,
+#   p_sev,
+#   align="v",axis="l",
+#   labels=c("A","B","C","D"),hjust = 0,
+#   #nrow=3,
+#   ncol=1
+# )
+# p_fig
+# ggsave(p_fig,filename = "Figures/Fig6_disease_metrics.jpg",height=9,width=6)
+# ggsave(p_fig,filename = "Figures/HighRes/Fig6_disease_metrics.tiff",height=9,width=6)
+
+p_new <- plot_grid(
+  p_prev_bar1,
+  p_sev1,
+  p_les,
   align="v",axis="l",
-  labels=c("A","B","C","D"),hjust = 0,
+  labels=c("a","b","c"),hjust = 0,
   #nrow=3,
   ncol=1
 )
-p_fig
-ggsave(p_fig,filename = "Figures/Fig6_disease_metrics.jpg",height=9,width=6)
-ggsave(p_fig,filename = "Figures/HighRes/Fig6_disease_metrics.tiff",height=9,width=6)
+p_new
+ggsave(p_new, filename = "Figures/Fig6_disease_metrics_new.jpg", width=6.5, height=7)
