@@ -1,13 +1,13 @@
 # Code files for EelgrassDiseaseTemperature manuscript
 # 06_blade_disease_model
 
-# Last updated 2021-05-09 by Lillian Aoki
+# Last updated 2021-05-20 by Lillian Aoki
 
 # This script uses eelgrass wasting disease survey data and remotely sensed SST data to model effects of temperature anomalies
 # and plant and blade characteristsics on wasting disease prevalence and severity. 
 
-# outputs include Fig S3A, S3B, S3C, S3D (effect sizes of the prevalence and severity models) and 
-# Table S7 (blade model comparisons)
+# outputs include Fig S6 (effect sizes of the prevalence, lesion area, and severity models) and 
+# Table S6-S7 (blade model comparisons)
 
 library(tidyverse)
 library(TMB)
@@ -20,7 +20,7 @@ library(sjPlot)
 # Read in data ###
 
 bladeWD <- read.csv("Data/disease_2019.csv")
-bladeWD <- bladeWD[,c("Prevalence","Severity","BladeArea","TidalHeight","SampleId","Region","SiteCode","Transect")]
+bladeWD <- bladeWD[,c("Prevalence","Severity","LesionArea","BladeArea","TidalHeight","SampleId","Region","SiteCode","Transect")]
 epi <- read.csv("Data/all_survey_metrics_transect.csv")
 epi <- epi[,c("Region","SiteCode","TidalHeight","Transect","EpiphytePerAreaMean","DensityShootsMean")]
 bladeWD <- left_join(bladeWD,epi,by=c("Region","SiteCode","TidalHeight","Transect"))
@@ -129,7 +129,7 @@ performance(fit_prev3.3)
 ## Visualize the best-fitting model output
 p_cpta_names <- c("Cumulative SST anomaly * Tidal height (upper)",
                   "Shoot density * Tidal height (upper)", "Leaf area * Tidal height (upper)",
-                  "Tidal height (upper)", "Cumulative SST anomaly","Epiphyte load","Shoot density","Blade area")
+                  "Tidal height (upper)", "Cumulative SST anomaly","Epiphyte load","Shoot density","Leaf area")
 p_cpta_plot <- plot_model(fit_prev3.3,
                           axis.labels = p_cpta_names,
                           title="",
@@ -143,7 +143,7 @@ p_cpta_plot <- plot_model(fit_prev3.3,
 a <- p_cpta_plot+theme_bw()+
   geom_hline(yintercept = 1,linetype="dashed",color="darkgrey")+
   scale_y_log10(limits=c(0.2,5))+
-  scale_color_manual(values=c("black","grey50"))+
+  scale_color_viridis_d(begin = 0, end = 0.6)+
   ylab("Scaled estimates of \ndisease prevalence odds ratio")+
   labs(tag="A")+
   theme(panel.grid = element_blank(),
@@ -159,7 +159,7 @@ fit_prev5 <- glmmTMB(Prevalence~sBladeArea+sDensityShoots+sEpiphytePerAreaMean+T
                        (1|Region)+(1|MeadowId)+(1|TransectId),
                      data=bladeWD,
                      family=binomial(link="logit"))
-#summary(fit_prev5)
+summary(fit_prev5)
 
 
 ### Model selection by AIC
@@ -215,7 +215,7 @@ performance(fit_prev5)
 ## Visualize the best-fitting model output
 p_all_names <- c("Epiphyte load * Tidal height (upper)", "Shoot density * Tidal height (upper)",
                  "Blade area * Tidal height (upper)","Tidal height (upper)",
-                 "Epiphyte load","Shoot density","Blade area")
+                 "Epiphyte load","Shoot density","Leaf area")
 p_all_plot <- plot_model(fit_prev5,
                          axis.labels = p_all_names,
                          title="",
@@ -225,16 +225,16 @@ p_all_plot <- plot_model(fit_prev5,
                          #transform = NULL
                          #axis.lim = c(0.1,10),
                          group.terms = c(1,1,2,2,1,1,2))
-c <- p_all_plot+theme_bw()+
+b <- p_all_plot+theme_bw()+
   geom_hline(yintercept = 1,linetype="dashed",color="darkgrey")+
   scale_y_log10(limits=c(0.2,5))+
-  scale_color_manual(values=c("black","grey50"))+
+  scale_color_viridis_d(begin = 0, end = 0.6)+
   ylab("Scaled estimates of \ndisease prevalence odds ratio")+
-  labs(tag="C")+
+  labs(tag="B")+
   theme(panel.grid = element_blank(),
         #plot.margin = margin(0,0,0,0,unit="pt"),
         axis.text = element_text(size=10))
-c
+b
 
 # Blade level severity, with CPTA (n=1573) ####
 # Severity at the blade level is the second part of the hurdle, so it is only modeled on the diseased blades.
@@ -353,8 +353,8 @@ performance(fit_sev3.4)
 # 
 # ## Visualize the best-fitting model output
 s_cpta_names <- c("Epiphyte load * Tidal height (upper)",
-                  "Shoot density * Tidal height (upper)", "Blade area * Tidal height (upper)",
-                  "Tidal height (upper)", "Cumulative SST anomaly","Epiphyte load","Shoot density","Blade area")
+                  "Shoot density * Tidal height (upper)", "Leaf area * Tidal height (upper)",
+                  "Tidal height (upper)", "Cumulative SST anomaly","Epiphyte load","Shoot density","Leaf area")
 s_cpta_plot <- plot_model(fit_sev3.4,
                           axis.labels = s_cpta_names,
                           title="",
@@ -364,16 +364,16 @@ s_cpta_plot <- plot_model(fit_sev3.4,
                           #transform = NULL
                           #axis.lim = c(0.1,10),
                           group.terms = c(1,1,1,2,2,2,1,2))
-b <- s_cpta_plot+theme_bw()+
+e <- s_cpta_plot+theme_bw()+
   geom_hline(yintercept = 1,linetype="dashed",color="darkgrey")+
   scale_y_log10(limits=c(0.2,5))+
-  scale_color_manual(values=c("black","grey50"))+
+  scale_color_viridis_d(begin = 0, end = 0.6)+
   ylab("Scaled estimates of \ndisease severity odds ratio")+
-  labs(tag="B")+
+  labs(tag="E")+
   theme(panel.grid = element_blank(),
         #plot.margin = margin(0,0,0,0,unit="pt"),
         axis.text = element_text(size=10))
-b
+e
 # Blade level severity, no CPTA, n=1853 ####
 # Follow up model includes all diseased blades, no temperature anomaly term.
 # Also fit with beta regression.
@@ -450,7 +450,7 @@ performance(fit_sev2.1)
 ## Visualize the best-fitting model output
 s_all_names <- c("Epiphyte load * Tidal height (upper)", "Shoot density * Tidal height (upper)",
                  "Tidal height (upper)",
-                 "Epiphyte load","Shoot density","Blade area")
+                 "Epiphyte load","Shoot density","Leaf area")
 s_all_plot <- plot_model(fit_sev2.1,
                          axis.labels = s_all_names,
                          title="",
@@ -460,19 +460,184 @@ s_all_plot <- plot_model(fit_sev2.1,
                          #transform = NULL
                          #axis.lim = c(0.1,10),
                          group.terms = c(1,1,1,2,1,1))
-d <- s_all_plot+theme_bw()+
+f <- s_all_plot+theme_bw()+
   geom_hline(yintercept = 1,linetype="dashed",color="darkgrey")+
   scale_y_log10(limits=c(0.2,5))+
-  scale_color_manual(values=c("black","grey50"))+
+  scale_color_viridis_d(begin = 0, end = 0.6)+
   ylab("Scaled estimates of \ndisease severity odds ratio")+
+  labs(tag="F")+
+  theme(panel.grid = element_blank(),
+        #plot.margin = margin(0,0,0,0,unit="pt"),
+        axis.text = element_text(size=10))
+f
+
+# Blade level lesion area, with CPTA n = 1573 ####
+# Use the same dataset as for severity.
+# Model is a glmm with Gamma distribution
+fit_les <- glmmTMB(LesionArea~sBladeArea+sDensityShoots+sEpiphytePerAreaMean+sCDiffMeanHeat+TidalHeight+
+                      sBladeArea:TidalHeight+sDensityShoots:TidalHeight+sEpiphytePerAreaMean:TidalHeight+sCDiffMeanHeat:TidalHeight+
+                      (1|Region)+(1|MeadowId)+(1|TransectId),
+                    data=sevdat,
+                    family=Gamma(link="log"))
+summary(fit_les)
+# can include Region as a random effect here
+# Model selection by AIC
+# remove blade area : tidal height interaction
+fit_les1 <- glmmTMB(LesionArea~sBladeArea+sDensityShoots+sEpiphytePerAreaMean+sCDiffMeanHeat+TidalHeight+
+                        sDensityShoots:TidalHeight+
+                        sEpiphytePerAreaMean:TidalHeight+sCDiffMeanHeat:TidalHeight+
+                        (1|MeadowId)+(1|TransectId),
+                      data=sevdat,
+                    family=Gamma(link="log"))
+
+# remove shoot density : tidal height interaction
+fit_les2 <- glmmTMB(LesionArea~sBladeArea+sDensityShoots+sEpiphytePerAreaMean+sCDiffMeanHeat+TidalHeight+
+                        sBladeArea:TidalHeight+
+                        sEpiphytePerAreaMean:TidalHeight+sCDiffMeanHeat:TidalHeight+
+                        (1|MeadowId)+(1|TransectId),
+                      data=sevdat,
+                    family=Gamma(link="log"))
+# remove epiphyte load : tidal height interaction
+fit_les3 <- glmmTMB(LesionArea~sBladeArea+sDensityShoots+sEpiphytePerAreaMean+sCDiffMeanHeat+TidalHeight+
+                        sBladeArea:TidalHeight+sDensityShoots:TidalHeight+
+                        sCDiffMeanHeat:TidalHeight+
+                        (1|MeadowId)+(1|TransectId),
+                      data=sevdat,
+                    family=Gamma(link="log"))
+# remove cumulative anomaly : tidal height interaction
+fit_les4 <- glmmTMB(LesionArea~sBladeArea+sDensityShoots+sEpiphytePerAreaMean+sCDiffMeanHeat+TidalHeight+
+                        sBladeArea:TidalHeight+sDensityShoots:TidalHeight+
+                        sEpiphytePerAreaMean:TidalHeight+
+                        (1|MeadowId)+(1|TransectId),
+                      data=sevdat,
+                    family=Gamma(link="log"))
+# no interactions
+fit_les5 <- glmmTMB(LesionArea~sBladeArea+sDensityShoots+sEpiphytePerAreaMean+sCDiffMeanHeat+TidalHeight+
+                        (1|MeadowId)+(1|TransectId),
+                      data=sevdat,
+                    family=Gamma(link="log"))
+# no tidal height (or interactions)
+fit_les6 <- glmmTMB(LesionArea~sBladeArea+sDensityShoots+sEpiphytePerAreaMean+sCDiffMeanHeat+
+                        (1|MeadowId)+(1|TransectId),
+                      data=sevdat,
+                    family=Gamma(link="log"))
+df.AIC <- AIC(fit_les,fit_les1,fit_les2,fit_les3,fit_les4,
+              fit_les5,fit_les6)
+df.AIC$deltaAIC <- df.AIC$AIC-min(df.AIC$AIC)
+df.AIC$likelihood <- exp(-df.AIC$deltaAIC/2)
+df.AIC$weight <- df.AIC$likelihood/sum(df.AIC$likelihood)
+df.AIC
+# Based on AIC and weight, use fit_les3, no epiphyte load:tidal height interaction
+# # Assess the model residuals 
+El.sim <- simulateResiduals(fit_les3)
+plot(El.sim)
+plot(El.sim$scaledResiduals~sevdat$sBladeArea)
+plot(El.sim$scaledResiduals~sevdat$sDensityShoots)
+plot(El.sim$scaledResiduals~sevdat$sEpiphytePerAreaMean)
+plot(El.sim$scaledResiduals~as.factor(sevdat$TidalHeight))
+plot(El.sim$scaledResiduals~sevdat$sCDiffMeanHeat)
+# Not too worried about non-normality, with thousands of observations. Dispersion is okay, so accept the model
+summary(fit_les3)
+performance(fit_les3)
+# Visualize effect sizes
+l_cpta_names <- c("Cumulative anomaly * Tidal height (upper)",
+                  "Shoot density * Tidal height (upper)", "Leaf area * Tidal height (upper)",
+                  "Tidal height (upper)", "Cumulative SST anomaly","Epiphyte load","Shoot density","Leaf area")
+l_cpta_plot <- plot_model(fit_les3,
+                          axis.labels =l_cpta_names,
+                          title="",
+                          show.p = TRUE,
+                          show.values = TRUE,
+                          value.offset = 0.4,
+                          #transform = NULL
+                          #axis.lim = c(0.1,10),
+                          group.terms = c(1,1,2,1,2,1,1,2))
+c <- l_cpta_plot+theme_bw()+
+  geom_hline(yintercept = 1,linetype="dashed",color="darkgrey")+
+  scale_y_log10(limits=c(0.2,5))+
+  scale_color_viridis_d(begin = 0, end = 0.6)+
+  ylab("Scaled estimates of \nlesion area")+
+  labs(tag="C")+
+  theme(panel.grid = element_blank(),
+        #plot.margin = margin(0,0,0,0,unit="pt"),
+        axis.text = element_text(size=10))
+c
+
+# Blade level lesion area no CPTA, n = 1853 ####
+# Use data = sev
+fit_les1 <- glmmTMB(LesionArea~sBladeArea+sDensityShoots+sEpiphytePerAreaMean+TidalHeight+
+                      sBladeArea:TidalHeight+sDensityShoots:TidalHeight+sEpiphytePerAreaMean:TidalHeight+
+                      (1|Region)+(1|MeadowId)+(1|TransectId),
+                    data=sev,
+                    family=Gamma(link="log"))
+summary(fit_les1)
+# keep Region in the random structure
+### Model selection by AIC
+# remove blade area : tidal height interaction
+fit_les1.1 <- glmmTMB(LesionArea~sBladeArea+sDensityShoots+sEpiphytePerAreaMean+TidalHeight+
+                        sDensityShoots:TidalHeight+sEpiphytePerAreaMean:TidalHeight+
+                        (1|Region)+(1|MeadowId)+(1|TransectId),
+                      data=sev,
+                      family=Gamma(link="log"))
+# remove shoot density : tidal height interaction
+fit_les1.2 <- glmmTMB(LesionArea~sBladeArea+sDensityShoots+sEpiphytePerAreaMean+TidalHeight+
+                        sBladeArea:TidalHeight+sEpiphytePerAreaMean:TidalHeight+
+                        (1|Region)+(1|MeadowId)+(1|TransectId),
+                      data=sev,
+                      family=Gamma(link="log"))
+# remove epiphyte load : tidal height interaction
+fit_les1.3 <- glmmTMB(LesionArea~sBladeArea+sDensityShoots+sEpiphytePerAreaMean+TidalHeight+
+                        sBladeArea:TidalHeight+sDensityShoots:TidalHeight+
+                        (1|Region)+(1|MeadowId)+(1|TransectId),
+                      data=sev,
+                      family=Gamma(link="log"))
+# no interactions
+fit_les1.4 <- glmmTMB(LesionArea~sBladeArea+sDensityShoots+sEpiphytePerAreaMean+TidalHeight+
+                        (1|Region)+(1|MeadowId)+(1|TransectId),
+                      data=sev,
+                      family=Gamma(link="log"))
+# no tidal height (or interactions)
+fit_les1.5 <- glmmTMB(LesionArea~sBladeArea+sDensityShoots+sEpiphytePerAreaMean+
+                        (1|Region)+(1|MeadowId)+(1|TransectId),
+                      data=sev,
+                      family=Gamma(link="log"))
+
+df.AIC <- AIC(fit_les1,fit_les1.1,fit_les1.2,fit_les1.3,fit_les1.4,
+              fit_les1.5)
+df.AIC$deltaAIC <- df.AIC$AIC-min(df.AIC$AIC)
+df.AIC$likelihood <- exp(-df.AIC$deltaAIC/2)
+df.AIC$weight <- df.AIC$likelihood/sum(df.AIC$likelihood)
+df.AIC
+# Based on AIC and weight, use fit_les1.3, no epiphyte:tidal height interaction
+summary(fit_les1.3)
+performance(fit_les1.3)
+# Visualize effect sizes
+l_all_names <- c("Shoot density * Tidal height (upper)", "Leaf area * Tidal height (upper)",
+                  "Tidal height (upper)","Epiphyte load","Shoot density","Leaf area")
+l_all_plot <- plot_model(fit_les1.3,
+                          axis.labels =l_all_names,
+                          title="",
+                          show.p = TRUE,
+                          show.values = TRUE,
+                          value.offset = 0.4,
+                          #transform = NULL
+                          #axis.lim = c(0.1,10),
+                          group.terms = c(1,1,2,2,1,1))
+d <- l_all_plot+theme_bw()+
+  geom_hline(yintercept = 1,linetype="dashed",color="darkgrey")+
+  scale_y_log10(limits=c(0.2,5))+
+  scale_color_viridis_d(begin = 0, end = 0.6)+
+  ylab("Scaled estimates of \nlesion area")+
   labs(tag="D")+
   theme(panel.grid = element_blank(),
         #plot.margin = margin(0,0,0,0,unit="pt"),
         axis.text = element_text(size=10))
 d
 
-(a + b) / (c + d)
-ggsave(filename = "Figures/FigS3_effect_size_blade_model.jpg", width=8, height = 8)
-# This is Figure S3 in the manuscript
+
+# Figure of effect sizes for blade model ####
+(a + b) / (c + d) / (e + f) + plot_layout(guides="collect")
+ggsave(filename = "Figures/FigS6_effect_size_blade_model.jpg", width=8, height = 12)
+# This is Figure S6 in the manuscript
 # create high resolution version
-ggsave(filename = "Figures/HighRes/FigS3_effect_size_blade_model.tiff", width=8, height = 8)
+ggsave(filename = "Figures/HighRes/FigS6_effect_size_blade_model.tiff", width=8, height = 12)
