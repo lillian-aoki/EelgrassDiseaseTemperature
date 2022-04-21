@@ -1,10 +1,11 @@
 # Code files for EelgrassDiseaseTemperature manuscript
 # 03_validate_leaf2_oregon
 
-# Last updated 2021-05-20 by Lillian Aoki
+# Last updated 2022-04-20 by Lillian Aoki
 
 # This script validates using leaf 2 for the Oregon measurements, instead of leaf 3 as in the other regions
-# Outputs are Fig S8 in the manuscript
+# Outputs are Fig S1 in the manuscript
+library(tidyverse)
 
 or <- read.csv("Data/OR_compare_leaf2_leaf3.csv")
 or$Estuary <- as.factor(or$Estuary)
@@ -43,14 +44,14 @@ ggplot(leaf[leaf$Leaf==2|leaf$Leaf==3,],aes(x=Leaf,fill=WD))+geom_bar(position =
   scale_y_continuous(expand = c(0,0),limits=c(0,62))+
   theme_bw(base_size = 11)+
   scale_fill_manual(values=c("darkgreen","grey50"),labels=c("Healthy","Diseased"))+
-  xlab("Blade rank")+
+  xlab("Leaf rank")+
   ylab("Count of plants")+
   theme(legend.title = element_blank(),
         panel.grid = element_blank(),
         strip.background = element_rect(fill="white"))
-ggsave(filename = "Figures/FigS8_leaf2_oregon.jpg", width = 4.75, height = 3.4)
+ggsave(filename = "Figures/FigS1_leaf2_oregon.jpg", width = 4.75, height = 3.4)
 # create high resolution version for submission (not uploaded)
-ggsave(filename = "Figures/HighRes/FigS8_leaf2_oregon.tiff", width = 4.75, height = 3.4)
+ggsave(filename = "Figures/HighRes/FigS1_leaf2_oregon.tiff", width = 4.75, height = 3.4)
 
 # check with logistic regression model
 leaf23 <- subset(leaf,Leaf=="2" | Leaf=="3")
