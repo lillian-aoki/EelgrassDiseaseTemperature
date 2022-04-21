@@ -2,7 +2,7 @@
 Data and code to support manuscript 'Disease surveillance by artificial intelligence links eelgrass wasting disease to ocean warming across latitudes'
 
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4776958.svg)](https://doi.org/10.5281/zenodo.4776958)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6476495.svg)](https://doi.org/10.5281/zenodo.6476495)
 
 
 **Authors**: Lillian R. Aoki, Brendan Rappazzo, Deanna Beatty, Lia K. Domke, Ginny L. Eckert, Morgan E. Eisenlord, Olivia J. Graham, Leah Harper, Timothy L. Hawthorne, Margot Hessing-Lewis, Kevin Hovel, Zachary L. Montheith, Ryan S. Mueller, Angeleen M. Olson, Carolyn Prentice, John J. Stachowicz, Fiona Tomas, Bo Yang, J. Emmett Duffy, Carla Gomes, C. Drew Harvell
