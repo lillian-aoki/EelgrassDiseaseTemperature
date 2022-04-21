@@ -1,13 +1,13 @@
 # Code files for EelgrassDiseaseTemperature manuscript
 # 05_transect_disease_model
 
-# Last updated 2021-05-20 by Lillian Aoki
+# Last updated 2022-04-20 by Lillian Aoki
 
 # This script uses eelgrass wasting disease survey data and remotely sensed SST data to model effects of temperature anomalies
 # and plant and transect characteristics on wasting disease prevalence, severity, and lesion area. 
 
-# outputs include Fig S2A, S2B S2C, S2D (effect sizes of the prevalence, severity and lesion area models),
-# Fig S6 and S7 (model predictors + data), and Table S6 (transect model comparisons)
+# outputs include Fig S5 (effect sizes of the prevalence, severity and lesion area models),
+# Fig S7-S9 (model predictors + data), and Table S4 and S5 (transect model comparisons)
 
 library(tidyverse)
 library(TMB)
@@ -149,11 +149,11 @@ p1 <- plot_model(fit_prev2.1s,
                  show.values = TRUE,
                  value.offset = 0.3,
                  axis.lim = c(0.2,5),
-                 group.terms = c(1,2,1,2,1,2,1,2))
+                 group.terms = c(2,1,2,1,2,1,2,1))
 a <- p1+theme_bw()+
   geom_hline(yintercept = 1,linetype="dashed",color="darkgrey")+
   scale_y_log10(limits=c(0.2,5))+
-  scale_color_manual(values=c("grey50","black"))+
+  scale_color_viridis_d(begin = 0, end = 0.6)+
   ylab("Scaled estimates of \n disease prevalence odds ratio")+
   #xlab("Scaled parameters")+
   labs(tag="A")+
@@ -244,12 +244,12 @@ p2 <- plot_model(fit_prev5.1,
            show.values = TRUE,
            value.offset = 0.3,
            axis.lim = c(0.2,10),
-           group.terms = c(1,1,1,1,1,1)
+           group.terms = c(2,1,2,2,1,2)
            )
 b <- p2+theme_bw()+
   geom_hline(yintercept = 1,linetype="dashed",color="darkgrey")+
   scale_y_log10(limits=c(0.2,4))+
-  scale_color_manual(values=c("black"))+
+  scale_color_viridis_d(begin = 0, end = 0.6)+
   ylab("Scaled estimates of \ndisease prevalence odds ratio")+
   labs(tag = "B")+
   #xlab("Scaled parameters")+
@@ -370,16 +370,16 @@ s_cpta_plot <- plot_model(fit_sev3.6s,
 
            group.terms = c(1,2,2,2)
            )
-c <- s_cpta_plot+theme_bw()+
+e <- s_cpta_plot+theme_bw()+
   geom_hline(yintercept = 1,linetype="dashed",color="darkgrey")+
   scale_y_log10(limits=c(0.2,5))+
-  scale_color_manual(values=c("black","grey50"))+
+  scale_color_viridis_d(begin = 0, end = 0.6)+
   ylab("Scaled estimates of \ndisease severity odds ratio")+
-  labs(tag="C")+
+  labs(tag="E")+
   theme(panel.grid = element_blank(),
         #plot.margin = margin(0,0,0,0,unit="pt"),
         axis.text = element_text(size=10))
-c
+e
 # ggsave(filename = "Figures/FigS2B_effect_size_transect_severity.jpg", width=4, height=4)
 
 # In contrast to prevalence models, severity model is beta regression, 
@@ -482,16 +482,16 @@ s_all_plot <- plot_model(fit_sev4.1,
 
            group.terms = c(1,1,2,2,1,2)
            )
-d <- s_all_plot+theme_bw()+
+f <- s_all_plot+theme_bw()+
   geom_hline(yintercept = 1,linetype="dashed",color="darkgrey")+
   scale_y_log10(limits=c(0.2,5))+
-  scale_color_manual(values=c("black","grey50"))+
+  scale_color_viridis_d(begin = 0, end = 0.6)+
   ylab("Scaled estimates of \ndisease severity odds ratio")+
-  labs(tag="D")+
+  labs(tag="F")+
   theme(panel.grid = element_blank(),
         #plot.margin = margin(0,0,0,0,unit="pt"),
         axis.text = element_text(size=10))
-d
+f
 #ggsave(filename = "Figures/FigS2D_effect_size_transect_severity.jpg", width=4, height=4)
 # Scaled estimates indicate change in the ratio of diseased tissue to non-diseased tissue. 
 #For a 1 SD increase in shoot density, the ratio of diseased tissue to non-diseased tissue changes by a factor of 1.84. 
@@ -608,16 +608,16 @@ l_cpta_plot <- plot_model(fit_les3.5s,
                           #axis.lim = c(0.1,10),
                           group.terms = c(2,1,2,1,2,1,1)
 )
-e <- l_cpta_plot+theme_bw()+
+c <- l_cpta_plot+theme_bw()+
   geom_hline(yintercept = 1,linetype="dashed",color="darkgrey")+
   scale_y_log10(limits=c(0.2,5))+
-  scale_color_manual(values=c("black","grey50"))+
+  scale_color_viridis_d(begin = 0, end = 0.6)+
   ylab("Scaled estimates of \nlesion area")+
-  labs(tag="E")+
+  labs(tag="C")+
   theme(panel.grid = element_blank(),
         #plot.margin = margin(0,0,0,0,unit="pt"),
         axis.text = element_text(size=10))
-e
+c
 # Effect sizes are more straight forward - change in response variable given 1 SD change in predictor. 
 # Both SST anomaly and shoot density have large effect sizes; there's some interaction with seagrass parameters and tidal height as well 
 
@@ -697,26 +697,26 @@ l_all_plot <- plot_model(fit_les4,
                           value.offset = 0.3,
                           #transform = NULL
                           #axis.lim = c(0.1,10),
-                          group.terms = c(2,2,2,2,1,1)
+                          group.terms = c(2,2,2,2,1,2)
 )
-f <- l_all_plot+theme_bw()+
+d <- l_all_plot+theme_bw()+
   geom_hline(yintercept = 1,linetype="dashed",color="darkgrey")+
   scale_y_log10(limits=c(0.2,5))+
-  scale_color_manual(values=c("black","grey50"))+
+  scale_color_viridis_d(begin = 0, end = 0.6)+
   ylab("Scaled estimates of \nlesion area")+
-  labs(tag="F")+
+  labs(tag="D")+
   theme(panel.grid = element_blank(),
         #plot.margin = margin(0,0,0,0,unit="pt"),
         axis.text = element_text(size=10))
-f
+d
 # Effect sizes are more straight forward - change in response variable given 1 SD change in predictor. 
 # Both shoot density and leaf area are significant when considering interaction with tidal height
 
 # Figure of effect sizes ####
 (a + b) / (c + d) / (e + f) + plot_layout(guides="collect")
-ggsave(filename = "Figures/FigS4_effect_size_transect.jpg",width=8, height = 12)
+ggsave(filename = "Figures/FigS5_effect_size_transect.jpg",width=8, height = 12)
 # high resolution version
-ggsave(filename = "Figures/HighRes/FigS4_effect_size_transect.tiff",width=8, height = 12)
+ggsave(filename = "Figures/HighRes/FigS5_effect_size_transect.tiff",width=8, height = 12)
 
 # Figure of transect-level correlations ####
 
@@ -753,7 +753,7 @@ p_cpta <- ggplot(data=transect,aes(x=CDiffMeanHeat,y=PrevalenceMean,color=Region
   geom_point(size=3)+
   scale_y_continuous(labels = scales::percent_format(accuracy = 1))+ 
   scale_shape_discrete(labels=c("Lower","Upper"))+
-  xlab("Cumulative positive temperature anomaly (ºC)")+
+  xlab("Cumulative positive\n temperature anomaly (ºC)")+
   ylab("Wasting disease prevalence\n (% individuals infected)")+
   theme_bw(base_size = 14)+
   theme(panel.grid = element_blank())
@@ -804,8 +804,8 @@ s_cpta <- ggplot(data=dat,aes(x=CDiffMeanHeat,y=SeverityMean,color=Region,shape=
   theme(panel.grid = element_blank())
 
 (s_ba + s_den) / (s_epi + s_cpta) +plot_layout(guides="collect")+plot_annotation(tag_levels = c("A","B","C","D"))
-ggsave(filename = "Figures/FigS8_transect_regressions_severity.jpg",width=10,height=8)
-ggsave(filename = "Figures/HighRes/FigS8_transect_regressions_severity.tiff", width = 10, height = 8)
+ggsave(filename = "Figures/FigS9_transect_regressions_severity.jpg",width=10,height=8)
+ggsave(filename = "Figures/HighRes/FigS9_transect_regressions_severity.tiff", width = 10, height = 8)
 
 ## Lesion area ####
 dat <- subset(transect,LesionAreaMean>0)
@@ -844,6 +844,6 @@ l_cpta <- ggplot(data=dat,aes(x=CDiffMeanHeat,y=LesionAreaMean,color=Region,shap
   theme(panel.grid = element_blank())
 
 (l_ba + l_den) / (l_epi + l_cpta) +plot_layout(guides="collect")+plot_annotation(tag_levels = c("A","B","C","D"))
-ggsave(filename = "Figures/FigS9_transect_regressions_lesion.jpg",width=10,height=8)
-ggsave(filename = "Figures/HighRes/FigS9_transect_regressions_severity.tiff", width = 10, height = 8)
+ggsave(filename = "Figures/FigS8_transect_regressions_lesion.jpg",width=10,height=8)
+ggsave(filename = "Figures/HighRes/FigS8_transect_regressions_lesion.tiff", width = 10, height = 8)
 

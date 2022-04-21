@@ -6,8 +6,8 @@
 # This script uses eelgrass wasting disease survey data and remotely sensed SST data to model effects of temperature anomalies
 # and plant and blade characteristsics on wasting disease prevalence and severity. 
 
-# outputs include Fig S3A, S3B, S3C, S3D (effect sizes of the prevalence and severity models) and 
-# Table S7 (blade model comparisons)
+# outputs include Fig S6 (effect sizes of the prevalence, lesion area, and severity models) and 
+# Table S6-S7 (blade model comparisons)
 
 library(tidyverse)
 library(TMB)
@@ -143,7 +143,7 @@ p_cpta_plot <- plot_model(fit_prev3.3,
 a <- p_cpta_plot+theme_bw()+
   geom_hline(yintercept = 1,linetype="dashed",color="darkgrey")+
   scale_y_log10(limits=c(0.2,5))+
-  scale_color_manual(values=c("black","grey50"))+
+  scale_color_viridis_d(begin = 0, end = 0.6)+
   ylab("Scaled estimates of \ndisease prevalence odds ratio")+
   labs(tag="A")+
   theme(panel.grid = element_blank(),
@@ -228,7 +228,7 @@ p_all_plot <- plot_model(fit_prev5,
 b <- p_all_plot+theme_bw()+
   geom_hline(yintercept = 1,linetype="dashed",color="darkgrey")+
   scale_y_log10(limits=c(0.2,5))+
-  scale_color_manual(values=c("black","grey50"))+
+  scale_color_viridis_d(begin = 0, end = 0.6)+
   ylab("Scaled estimates of \ndisease prevalence odds ratio")+
   labs(tag="B")+
   theme(panel.grid = element_blank(),
@@ -364,16 +364,16 @@ s_cpta_plot <- plot_model(fit_sev3.4,
                           #transform = NULL
                           #axis.lim = c(0.1,10),
                           group.terms = c(1,1,1,2,2,2,1,2))
-c <- s_cpta_plot+theme_bw()+
+e <- s_cpta_plot+theme_bw()+
   geom_hline(yintercept = 1,linetype="dashed",color="darkgrey")+
   scale_y_log10(limits=c(0.2,5))+
-  scale_color_manual(values=c("black","grey50"))+
+  scale_color_viridis_d(begin = 0, end = 0.6)+
   ylab("Scaled estimates of \ndisease severity odds ratio")+
-  labs(tag="C")+
+  labs(tag="E")+
   theme(panel.grid = element_blank(),
         #plot.margin = margin(0,0,0,0,unit="pt"),
         axis.text = element_text(size=10))
-c
+e
 # Blade level severity, no CPTA, n=1853 ####
 # Follow up model includes all diseased blades, no temperature anomaly term.
 # Also fit with beta regression.
@@ -460,16 +460,16 @@ s_all_plot <- plot_model(fit_sev2.1,
                          #transform = NULL
                          #axis.lim = c(0.1,10),
                          group.terms = c(1,1,1,2,1,1))
-d <- s_all_plot+theme_bw()+
+f <- s_all_plot+theme_bw()+
   geom_hline(yintercept = 1,linetype="dashed",color="darkgrey")+
   scale_y_log10(limits=c(0.2,5))+
-  scale_color_manual(values=c("black","grey50"))+
+  scale_color_viridis_d(begin = 0, end = 0.6)+
   ylab("Scaled estimates of \ndisease severity odds ratio")+
-  labs(tag="D")+
+  labs(tag="F")+
   theme(panel.grid = element_blank(),
         #plot.margin = margin(0,0,0,0,unit="pt"),
         axis.text = element_text(size=10))
-d
+f
 
 # Blade level lesion area, with CPTA n = 1573 ####
 # Use the same dataset as for severity.
@@ -552,16 +552,16 @@ l_cpta_plot <- plot_model(fit_les3,
                           #transform = NULL
                           #axis.lim = c(0.1,10),
                           group.terms = c(1,1,2,1,2,1,1,2))
-e <- l_cpta_plot+theme_bw()+
+c <- l_cpta_plot+theme_bw()+
   geom_hline(yintercept = 1,linetype="dashed",color="darkgrey")+
   scale_y_log10(limits=c(0.2,5))+
-  scale_color_manual(values=c("black","grey50"))+
+  scale_color_viridis_d(begin = 0, end = 0.6)+
   ylab("Scaled estimates of \nlesion area")+
-  labs(tag="E")+
+  labs(tag="C")+
   theme(panel.grid = element_blank(),
         #plot.margin = margin(0,0,0,0,unit="pt"),
         axis.text = element_text(size=10))
-e
+c
 
 # Blade level lesion area no CPTA, n = 1853 ####
 # Use data = sev
@@ -623,21 +623,21 @@ l_all_plot <- plot_model(fit_les1.3,
                           #transform = NULL
                           #axis.lim = c(0.1,10),
                           group.terms = c(1,1,2,2,1,1))
-f <- l_all_plot+theme_bw()+
+d <- l_all_plot+theme_bw()+
   geom_hline(yintercept = 1,linetype="dashed",color="darkgrey")+
   scale_y_log10(limits=c(0.2,5))+
-  scale_color_manual(values=c("black","grey50"))+
+  scale_color_viridis_d(begin = 0, end = 0.6)+
   ylab("Scaled estimates of \nlesion area")+
-  labs(tag="F")+
+  labs(tag="D")+
   theme(panel.grid = element_blank(),
         #plot.margin = margin(0,0,0,0,unit="pt"),
         axis.text = element_text(size=10))
-f
+d
 
 
 # Figure of effect sizes for blade model ####
 (a + b) / (c + d) / (e + f) + plot_layout(guides="collect")
-ggsave(filename = "Figures/FigS5_effect_size_blade_model.jpg", width=8, height = 12)
-# This is Figure S5 in the manuscript
+ggsave(filename = "Figures/FigS6_effect_size_blade_model.jpg", width=8, height = 12)
+# This is Figure S6 in the manuscript
 # create high resolution version
-ggsave(filename = "Figures/HighRes/FigS5_effect_size_blade_model.tiff", width=8, height = 12)
+ggsave(filename = "Figures/HighRes/FigS6_effect_size_blade_model.tiff", width=8, height = 12)

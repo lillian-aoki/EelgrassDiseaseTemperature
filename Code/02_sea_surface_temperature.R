@@ -1,11 +1,11 @@
 # Code files for EelgrassDiseaseTemperature manuscript
 # 02_sea_surface_temperature
 
-# Last updated 2021-05-20 by Lillian Aoki
+# Last updated 2022-04-20 by Lillian Aoki
 
 # This script imports and visualizes sea-surface temperature data for the wasting disease survey sites from 2019,
 # including exploratory data analysis to identify relevant temperature metrics correlated with wasting disease
-# Outputs include Fig 4, Fig S4 and Table S3 in the manuscript
+# Outputs include Fig 4, Fig S2, Fig S3 and Table S2 in the manuscript
 
 library(ggplot2)
 library(tidyverse)
@@ -42,6 +42,14 @@ monthly <- annual %>%
 meta <- read.csv("Data/all_survey_metrics_site.csv")
 meta$Region <- ordered(meta$Region, levels=region_order)
 meta <- dplyr::select(meta, c(Year, Region, SiteCode, PrevalenceMean, SeverityMean, LesionAreaMean, SampleDate, SampleJulian))
+
+# input logger data for comparison with SST 
+JJA19 <- subset(combo,time>"2019-05-31"&time<"2019-09-01")
+hobo <- read.csv("Data//HOBO_JJA_2019.csv")
+hobo$DateObs <- as.POSIXct(hobo$DateObs)
+hobo_summ <- hobo %>%
+  group_by(Region,SiteCode,Day=floor_date(DateObs,unit="day"))%>%
+  summarise(TempIS=mean(TempC))
 
 ### Raw temperature metrics ####
 month_d <- left_join(monthly,meta,by=c("Region","Site"="SiteCode"))
@@ -301,14 +309,17 @@ try <- bind_rows(corr_table)
 
 # Plot June SST and CPTA ####
 june19 <- subset(short_19,Julian>151&Julian<182)
+june19$RegionName <- plyr::revalue(june19$Region, c("AK"="Alaska", "BC"="British Columbia",
+                                              "WA" = "Washington", "OR" = "Oregon", 
+                                              "BB"="California - Bodega Bay", "SD" = "California - San Diego"))
 
 june_stress <- june19%>%
-  group_by(Region,Site,Meadow) %>%
+  group_by(Region, RegionName,Site,Meadow) %>%
   mutate(cDiffMean = cumsum(DiffMean),cDiffMeanHeat=cumsum(DiffMeanHeat),
          cDiff90 =cumsum(DiffT90),cDiff90Heat=cumsum(DiffT90Heat))
 
 region <- june19%>%
-  group_by(Region,Date)%>%
+  group_by(Region, RegionName,Date)%>%
   mutate(RegMeanMA=mean(Tmean_ma),Reg90MA=mean(T90_ma))
 
 pb <- as.POSIXct(c("2019-06-01","2019-06-15","2019-06-30"))
@@ -316,7 +327,7 @@ pb <- as.POSIXct(c("2019-06-01","2019-06-15","2019-06-30"))
 SST <- ggplot(june_stress,aes(x=Date))+
   geom_line(aes(y=analysed_sst,color=Site))+
   geom_line(data=region,aes(x=Date,y=RegMeanMA),linetype="dashed")+
-  facet_wrap(~Region,ncol=1)+
+  facet_wrap(~RegionName,ncol=1)+
   ylab("Sea surface temperature (ºC)")+
   scale_color_viridis_d()+
   scale_x_datetime(breaks = pb,date_labels = "%b %d" )+
@@ -336,7 +347,7 @@ SST <- ggplot(june_stress,aes(x=Date))+
 SST
 CPTA <- ggplot(june_stress,aes(x=Date))+
   geom_line(aes(y=cDiffMeanHeat,color=Site))+
-  facet_wrap(~Region,ncol=1)+
+  facet_wrap(~RegionName,ncol=1)+
   ylab("Cumulative positive temperature anomaly (ºC)")+
   scale_color_viridis_d()+
   scale_x_datetime(breaks = pb,date_labels = "%b %d" )+
@@ -391,6 +402,181 @@ ggplot(seasonal_region,aes(x=Region,y=DailyTemp,fill=Region))+geom_boxplot()+
         axis.title = element_text(size=11),
         axis.text = element_text(size=10),
         strip.text = element_text(size=10))
-ggsave(filename = "Figures/FigS4_daily_SST.jpg",width=6,height=4)
+ggsave(filename = "Figures/FigS2_daily_SST.jpg",width=6,height=4)
 # create high resolution version, not uploaded
-ggsave(filename = "Figures/HighRes/FigS4_daily_SST.tiff",width=6,height=4)
+ggsave(filename = "Figures/HighRes/FigS2_daily_SST.tiff",width=6,height=4)
+
+# Plot logger temps vs SST temps ####
+# Note the comparison is for Aug 2019 because the only summer month with good logger coverage and SST for all sites
+RS_IS <- right_join(JJA19,hobo_summ,by=c("Region","Site"="SiteCode","time"="Day"))
+noRS <- which(is.na(RS_IS$analysed_sst))
+noIS <- which(is.na(RS_IS$TempIS))
+RS_IS <- na.omit(RS_IS)
+RS_IS <- subset(RS_IS,Meadow!="BC_B")
+RS_IS_aug <- subset(RS_IS,time>"2019-07-31"&time<"2019-09-01")
+RS_IS_aug$Region <- ordered(RS_IS_aug$Region, levels=region_order)
+RS_IS_aug$Meadow <- paste(RS_IS_aug$Region, RS_IS_aug$Site, sep="_")
+RS_IS_aug$Meadow <- ordered(RS_IS_aug$Meadow, levels=c("AK_A", "AK_B", "AK_D", "AK_E", "AK_F",
+                                                       "BC_A", "BC_C", "BC_D", 
+                                                       "WA_A", "WA_B", "WA_C", "WA_D", "WA_E",
+                                                       "OR_B", "OR_C", "OR_D", "OR_E",
+                                                       "BB_A", "BB_B", "BB_C", "BB_D", "BB_E",
+                                                       "SD_A"))
+# can create one plot for all data but it's a little messy
+all <- ggplot(data=RS_IS_aug,aes(x=analysed_sst,y=TempIS, color=Region))+geom_point()+
+  stat_smooth(method="lm",col="dark grey")+
+  geom_abline(slope=1,intercept=0,linetype="dashed")+
+  #facet_wrap(~Meadow, scales= "free_x")+
+  facet_grid(rows=vars(Region),cols = vars(Site), scales = "free_x")+
+  # facet_wrap(Region~Site, scales = "free_x")+
+  scale_color_viridis_d(begin = 0, end = 1)+
+  scale_x_continuous(breaks = waiver(), n.breaks = 3)+
+  xlab("Remotely sensed SST (ºC)")+
+  ylab("In situ daily mean temp (ºC)")+
+  # labs(title="Comparing satellite and in situ temperatures - OR",
+  #      subtitle = "JJA 2019")+
+  theme_bw(base_size = 12)+
+  theme(strip.background = element_rect(fill="white"),
+        panel.grid = element_blank(),
+        axis.text = element_text(size=10),
+        legend.background = element_blank())
+# ggsave(filename = "Figures/FigS3_logger_sst_correlations_aug.jpg", width = 6.5, height=7)
+# ggsave(filename = "Figures/HighRes/FigS3_logger_sst_correlations_aug.tiff", width = 6.5, height=7)
+
+# instead break out into rows and then recombine with patchwork()
+ak <- ggplot(data=RS_IS_aug[RS_IS_aug$Region=="AK",],aes(x=analysed_sst,y=TempIS, color=Region))+geom_point()+
+  stat_smooth(method="lm",col="dark grey")+
+  geom_abline(slope=1,intercept=0,linetype="dashed")+
+  facet_wrap(~Meadow, scales= "free_x", nrow = 1)+
+  scale_color_viridis_d(begin = 0, end = 1)+
+  scale_x_continuous(breaks = waiver(), n.breaks = 3)+
+  xlab(NULL)+
+  ylab(NULL)+
+  # xlab("Remotely sensed SST (ºC)")+
+  # ylab("In situ daily mean temp (ºC)")+
+  theme_bw(base_size = 12)+
+  theme(strip.background = element_rect(fill="white"),
+        panel.grid = element_blank(),
+        axis.text = element_text(size=10),
+        legend.position = "none")
+ak
+ak_row <- plot_grid(ak, NULL, ncol = 2, rel_widths = c(5,0))
+ak_row
+bc <- ggplot(data=RS_IS_aug[RS_IS_aug$Region=="BC",],aes(x=analysed_sst,y=TempIS, color=Region))+geom_point()+
+  stat_smooth(method="lm",col="dark grey")+
+  geom_abline(slope=1,intercept=0,linetype="dashed")+
+  facet_wrap(~Meadow, scales= "free_x", nrow = 1, ncol = 5)+
+  scale_color_viridis_d(begin = 0.2, end = 1)+
+  scale_x_continuous(breaks = waiver(), n.breaks = 3)+
+  scale_y_continuous(limits=c(12.5, 16.5), breaks=c(13,14,15,16))+
+  xlab(NULL)+
+  ylab(NULL)+
+  # xlab("Remotely sensed SST (ºC)")+
+  # ylab("In situ daily mean temp (ºC)")+
+  theme_bw(base_size = 12)+
+  theme(strip.background = element_rect(fill="white"),
+        panel.grid = element_blank(),
+        axis.text = element_text(size=10),
+        legend.position = "none",
+        plot.margin = unit(c(0, 0, 0, 0), "cm"))
+bc
+bc_row <- plot_grid(bc, NULL, ncol = 2, rel_widths = c(3,2))
+
+wa <- ggplot(data=RS_IS_aug[RS_IS_aug$Region=="WA",],aes(x=analysed_sst,y=TempIS, color=Region))+geom_point()+
+  stat_smooth(method="lm",col="dark grey")+
+  geom_abline(slope=1,intercept=0,linetype="dashed")+
+  facet_wrap(~Meadow, scales= "free_x", nrow = 1, ncol = 5)+
+  scale_color_viridis_d(begin = 0.4, end = 1)+
+  scale_x_continuous(breaks = waiver(), n.breaks = 3)+
+  xlab(NULL)+
+  ylab(NULL)+
+  # xlab("Remotely sensed SST (ºC)")+
+  # ylab("In situ daily mean temp (ºC)")+
+  theme_bw(base_size = 12)+
+  theme(strip.background = element_rect(fill="white"),
+        panel.grid = element_blank(),
+        axis.text = element_text(size=10),
+        legend.position = "none",
+        plot.margin = unit(c(0, 0, 0, 0), "cm"))
+wa
+wa_row <- plot_grid(wa, NULL, ncol = 2, rel_widths = c(5,0))
+
+or <- ggplot(data=RS_IS_aug[RS_IS_aug$Region=="OR",],aes(x=analysed_sst,y=TempIS, color=Region))+geom_point()+
+  stat_smooth(method="lm",col="dark grey")+
+  geom_abline(slope=1,intercept=0,linetype="dashed")+
+  facet_wrap(~Meadow, scales= "free_x", nrow = 1, ncol = 5)+
+  scale_color_viridis_d(begin = 0.6, end = 1)+
+  scale_x_continuous(breaks = waiver(), n.breaks = 3)+
+  xlab(NULL)+
+  ylab(NULL)+
+  # xlab("Remotely sensed SST (ºC)")+
+  # ylab("In situ daily mean temp (ºC)")+
+  theme_bw(base_size = 12)+
+  theme(strip.background = element_rect(fill="white"),
+        panel.grid = element_blank(),
+        axis.text = element_text(size=10),
+        legend.position = "none",
+        plot.margin = unit(c(0, 0, 0, 0), "cm"))
+or
+or_row <- plot_grid(or, NULL, ncol = 2, rel_widths = c(4,1))
+
+bb <- ggplot(data=RS_IS_aug[RS_IS_aug$Region=="BB",],aes(x=analysed_sst,y=TempIS, color=Region))+geom_point()+
+  stat_smooth(method="lm",col="dark grey")+
+  geom_abline(slope=1,intercept=0,linetype="dashed")+
+  facet_wrap(~Meadow, scales= "free_x", nrow = 1, ncol = 5)+
+  scale_color_viridis_d(begin = 0.8, end = 1)+
+  scale_x_continuous(breaks = waiver(), n.breaks = 3)+
+  xlab(NULL)+
+  ylab(NULL)+
+  # xlab("Remotely sensed SST (ºC)")+
+  # ylab("In situ daily mean temp (ºC)")+
+  theme_bw(base_size = 12)+
+  theme(strip.background = element_rect(fill="white"),
+        panel.grid = element_blank(),
+        axis.text = element_text(size=10),
+        legend.position = "none",
+        plot.margin = unit(c(0, 0, 0, 0), "cm"))
+bb
+bb_row <- plot_grid(bb, NULL, ncol = 2, rel_widths = c(5,0))
+
+sd <- ggplot(data=RS_IS_aug[RS_IS_aug$Region=="SD",],aes(x=analysed_sst,y=TempIS, color=Region))+geom_point()+
+  stat_smooth(method="lm",col="dark grey")+
+  geom_abline(slope=1,intercept=0,linetype="dashed")+
+  facet_wrap(~Meadow, scales= "free_x", nrow = 1, ncol = 5)+
+  scale_color_viridis_d(begin = 1, end = 1)+
+  scale_x_continuous(breaks = waiver(), n.breaks = 3)+
+  scale_y_continuous(limits=c(25, 27), breaks=c(25,26,27))+
+  xlab(NULL)+
+  ylab(NULL)+
+  # xlab("Remotely sensed SST (ºC)")+
+  # ylab("In situ daily mean temp (ºC)")+
+  theme_bw(base_size = 12)+
+  theme(strip.background = element_rect(fill="white"),
+        panel.grid = element_blank(),
+        axis.text = element_text(size=10),
+        legend.position = "none",
+        plot.margin = unit(c(0, 0, 0, 0), "cm"))
+sd
+sd_row <- plot_grid(sd, NULL, ncol = 2, rel_widths = c(1,4)) +plot_layout(guides="collect")
+
+legend <- get_legend(all)
+
+y_label <- ggplot()+
+  geom_text(aes(x=1, y=1, label="In situ daily mean temperature (ºC)"), angle=90)+
+  theme_void()
+x_label <- ggplot()+
+  geom_text(aes(x=1, y=1, label="Remotely sensed SST (ºC)"))+
+  theme_void()+
+  theme(plot.margin = unit(c(0, 0, 0, 0), "cm"),
+        panel.spacing= unit(c(0, 0, 0, 0), "cm")
+        )
+
+middle <- ((ak_row / bc_row / wa_row / or_row / bb_row / sd_row)/x_label) + 
+  plot_layout(nrow = 7, heights = c(1,1,1,1,1,1,0.25))
+middle
+full <- (y_label | middle | legend)+plot_layout(ncol =3, widths = c(0.2,5,0.5))
+full
+# (y_label | ((ak_row / bc_row / wa_row / or_row / bb_row / sd_row)/x_label) | legend) + 
+#   plot_layout(ncol =3, widths = c(0.2,5,0.5), nrow = 2, heights = c(20, 0.1))
+ggsave("Figures/FigS3_logger_sst_correlations_aug.jpg",width = 6.5, height=7)
+ggsave("Figures/HighRes/FigS3_logger_sst_correlations_aug.tiff", width = 6.5, height = 7)

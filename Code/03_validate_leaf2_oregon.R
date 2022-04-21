@@ -1,10 +1,10 @@
 # Code files for EelgrassDiseaseTemperature manuscript
 # 03_validate_leaf2_oregon
 
-# Last updated 2022-03-30 by Lillian Aoki
+# Last updated 2022-04-20 by Lillian Aoki
 
 # This script validates using leaf 2 for the Oregon measurements, instead of leaf 3 as in the other regions
-# Outputs are Fig S8 in the manuscript
+# Outputs are Fig S1 in the manuscript
 library(tidyverse)
 
 or <- read.csv("Data/OR_compare_leaf2_leaf3.csv")

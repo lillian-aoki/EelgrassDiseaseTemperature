@@ -1,10 +1,10 @@
 # Code files for EelgrassDiseaesTemperature manuscript
 # 01_eelgrass_survey_metrics
 
-# Last updated 2021-05-20 by Lillian Aoki
+# Last updated 2022-04-20 by Lillian Aoki
 
 # This script imports and visualizes data from the eelgrass wasting disease surveys in 2019
-# Outputs include Fig 6 and Fig S5 in the manuscript
+# Outputs include Fig 6 and Fig S10 in the manuscript
 
 #### Load libraries ####
 library(tidyverse)
@@ -236,15 +236,15 @@ combo$Healthy <- 1-combo$PrevalenceMean
 
 combo <- combo %>%
   gather(key="DiseaseStatus", value="Prevalence",c("Diseased", "Healthy"))
-test$DiseaseStatus <- ordered(test$DiseaseStatus, levels=c("Healthy","Diseased"))
+combo$DiseaseStatus <- ordered(combo$DiseaseStatus, levels=c("Diseased","Healthy"))
 
 prev_bar <-   ggplot()+
-  geom_bar(data=combo,aes(x=as.factor(order),y=Prevalence,fill=DiseaseStatus), position="fill", stat="identity")+
+  geom_bar(data=combo,aes(x=as.factor(order),y=Prevalence,fill=DiseaseStatus), position=position_fill(reverse = TRUE), stat="identity")+
   facet_wrap(~Region,nrow = 1,scales = "free_x",strip.position = "bottom")+
   scale_x_discrete(breaks = combo$order,
                    labels = combo$SiteCode)+
   scale_y_continuous(labels = scales::percent_format(accuracy = 1), expand = c(0,0))+
-  scale_fill_viridis_d(begin = 0.75, end = 0.25, name="Disease status")+
+  scale_fill_viridis_d(begin = 0.25, end = 0.75, name="Disease status")+
   ylab("Wasting disease prevalence\n(% individuals infected)")+
   xlab("Site within Region")+
   theme_bw()+
@@ -259,7 +259,7 @@ prev_bar <-   ggplot()+
         strip.text = element_text(size=11),
         plot.margin = margin(t=3,b=3,r=3,l=5,unit="mm"),
         legend.position = "top")
-
+prev_bar
 # disease severity plot
 p_sev <- ggplot()+
   geom_pointrange(data=combo,aes(x=as.factor(order),
@@ -320,7 +320,7 @@ p_les
 
 # Combine plots into figures ####
 
-# all seagrass metrics for supplemental Figure S5
+# all seagrass metrics for supplemental Figure S10
 p_ba1 <- p_ba+xlab(NULL)
 p_den1 <- p_den+xlab(NULL)
 p_ch1 <- p_ch+xlab(NULL)
@@ -337,16 +337,16 @@ p_all <- plot_grid(
   ncol=1
 )
 p_all
-ggsave(p_all,filename = "Figures/FigS6_seagrass_metrics.jpg",height=10,width=6)
+ggsave(p_all,filename = "Figures/FigS10_seagrass_metrics.jpg",height=10,width=6)
 # create high resolution version for paper submission (high-res files not uploaded to github)
-ggsave(p_all,filename = "Figures/HighRes/FigS6_seagrass_metrics.tiff",height=10,width=6)
+ggsave(p_all,filename = "Figures/HighRes/FigS10_seagrass_metrics.tiff",height=10,width=6)
 
 # disease metrics for manuscript Figure 6
 
 p_prev1 <- p_prev+xlab(NULL)
 p_prev_bar1 <- prev_bar +xlab(NULL)
 p_sev1 <- p_sev+xlab(NULL)
-
+p_les1 <- p_les+xlab(NULL)
 # p_fig <- plot_grid(
 #   p_ba1,
 #   p_den1,
@@ -363,8 +363,8 @@ p_sev1 <- p_sev+xlab(NULL)
 
 p_new <- plot_grid(
   p_prev_bar1,
-  p_sev1,
-  p_les,
+  p_les1,
+  p_sev,
   align="v",axis="l",
   labels=c("a","b","c"),hjust = 0,
   #nrow=3,
@@ -372,3 +372,5 @@ p_new <- plot_grid(
 )
 p_new
 ggsave(p_new, filename = "Figures/Fig6_disease_metrics_new.jpg", width=6.5, height=7)
+# high res version 
+ggsave(p_new, filename = "Figures/HighRes/Fig6_disease_metrics_new.tiff", width=6.5, height=7)
